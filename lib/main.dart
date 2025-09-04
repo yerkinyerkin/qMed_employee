@@ -7,6 +7,7 @@ import 'package:qmed_employee/core/get_it/injection_container.dart';
 import 'package:qmed_employee/core/hive/hive_init.dart';
 import 'package:qmed_employee/features/login/logic/bloc/login_bloc.dart';
 import 'package:qmed_employee/features/login/screens/login_screen.dart';
+import 'package:qmed_employee/features/profile/logic/bloc/profile_bloc.dart';
 
 Future <void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +29,9 @@ class MyApp extends StatelessWidget {
         BlocProvider<LoginBloc>(
           create: (_) => sl(),
         ),
-        
+        BlocProvider<ProfileBloc>(
+          create: (_) => sl(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -36,10 +39,9 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: ColorStyles.primaryColor),
         ),
-        home: const LoginScreen()
-        //  token.get('token') == null
-        //       ? const LoginScreen()
-        //       :  BottomNavBar(index: 0),
+        home: token.get('token') == null
+              ? const LoginScreen()
+              :  BottomNavBar(index: 3),
       ),
     );
   }

@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:qmed_employee/core/const/color_styles.dart';
 import 'package:qmed_employee/core/get_it/injection_container.dart';
 import 'package:qmed_employee/features/profile/logic/bloc/profile_bloc.dart';
+import 'package:qmed_employee/features/profile/screens/faq/screens/faq_screen.dart';
+import 'package:qmed_employee/features/profile/screens/my_profile/screens/my_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -83,27 +85,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: ColorStyles.whiteColor,
-
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Личные данные',
-                                    style: GoogleFonts.montserrat(fontSize: 13,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
-                                     Text('Просмотреть личные данные',
-                                    style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.blackColor,fontWeight: FontWeight.w400),),
-                                  ],
-                                ),
-                                Icon(Icons.arrow_forward_ios_outlined,color: ColorStyles.primaryColor,size: 16,)
-                              ],
+                          GestureDetector(
+                            onTap: (){
+                              Navigator.push(context,
+                              MaterialPageRoute(builder: (context)=>MyProfileScreen(response: state.response),),);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                color: ColorStyles.whiteColor,
+                            
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Личные данные',
+                                      style: GoogleFonts.montserrat(fontSize: 13,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
+                                       Text('Просмотреть личные данные',
+                                      style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.blackColor,fontWeight: FontWeight.w400),),
+                                    ],
+                                  ),
+                                  Icon(Icons.arrow_forward_ios_outlined,color: ColorStyles.primaryColor,size: 16,)
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -128,6 +136,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 Icon(Icons.arrow_forward_ios_outlined,color: ColorStyles.primaryColor,size: 16,)
                               ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => FaqScreen()));
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                color: ColorStyles.whiteColor,
+                            
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Часто задаваемые вопросы',
+                                      style: GoogleFonts.montserrat(fontSize: 13,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
+                                       Text('Нажмите для ознакомления',
+                                      style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.blackColor,fontWeight: FontWeight.w400),),
+                                    ],
+                                  ),
+                                  Icon(Icons.arrow_forward_ios_outlined,color: ColorStyles.primaryColor,size: 16,)
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -219,8 +256,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                       ],
                     ),
-
-
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 20),
                       child: Container(

@@ -2,4 +2,8 @@ part of 'home_bloc.dart';
 
 abstract class HomeEvent {}
 
-class GetPatients extends HomeEvent {}
+class GetPatients extends HomeEvent {
+  String search;
+  
+  GetPatients(this.search);
+}

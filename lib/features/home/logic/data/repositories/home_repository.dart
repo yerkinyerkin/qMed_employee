@@ -3,7 +3,7 @@ import 'package:qmed_employee/features/home/logic/data/datasources/home_datasour
 import 'package:qmed_employee/features/home/logic/data/models/home_model.dart';
 
 abstract class HomeRepository {
-  Future<List<HomeModel>> getPatients();
+  Future<List<HomeModel>> getPatients(String search);
 }
 
 class HomeRepositoryImpl implements HomeRepository {
@@ -12,8 +12,8 @@ class HomeRepositoryImpl implements HomeRepository {
   HomeRepositoryImpl(this.homeDataSource);
 
   @override
-  Future<List<HomeModel>> getPatients() async {
-    Response response = await homeDataSource.getPatients();
+  Future<List<HomeModel>> getPatients(String search) async {
+    Response response = await homeDataSource.getPatients(search);
     return (response.data as List).map((i) => HomeModel.fromJson(i)).toList();
   }
 }

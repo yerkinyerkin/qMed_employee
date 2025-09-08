@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:qmed_employee/core/dio_interceptor/dio_interceptor.dart';
 
 abstract class HomeDataSource {
-  Future<Response> getPatients();
+  Future<Response> getPatients(String search);
 }
 
 class HomeDatasourceImpl implements HomeDataSource {
@@ -12,9 +12,12 @@ class HomeDatasourceImpl implements HomeDataSource {
   Box userId = Hive.box('userId');
 
   @override
-  Future<Response> getPatients() async {
+  Future<Response> getPatients(String search) async {
     Response response = await dio.get(
       '/employee/${userId.get('userId')}/patients',
+      queryParameters: {
+        'search': search,
+      }
     );
 
     return response;

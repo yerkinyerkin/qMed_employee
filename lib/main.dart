@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         ),
         home: token.get('token') == null
               ? const LoginScreen()
-              :  BottomNavBar(index: 0),
+              : BottomNavBar(index: 1),
       ),
     );
   }

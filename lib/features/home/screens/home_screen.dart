@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:qmed_employee/core/const/color_styles.dart';
 import 'package:qmed_employee/core/get_it/injection_container.dart';
 import 'package:qmed_employee/features/home/logic/bloc/home_bloc.dart';
+import 'package:qmed_employee/features/notification/screens/notification_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +23,20 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: ColorStyles.backgroundColor,
       appBar: AppBar(
         backgroundColor: ColorStyles.primaryColor,
+        actions: [
+          GestureDetector(
+            onTap: (){
+              Navigator.push(context,
+              MaterialPageRoute(builder: (context) => NotificationScreen()));
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Icon(Icons.notifications_none,
+              color: ColorStyles.whiteColor,
+              size: 23,),
+            ),
+          )
+        ],
         title: Text('Главная',style: GoogleFonts.montserrat(fontSize: 17,
         color: ColorStyles.whiteColor,fontWeight: FontWeight.w500,
         ),

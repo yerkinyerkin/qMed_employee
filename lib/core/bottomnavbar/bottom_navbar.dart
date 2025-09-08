@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qmed_employee/core/const/color_styles.dart';
+import 'package:qmed_employee/features/home/screens/home_screen.dart';
 import 'package:qmed_employee/features/profile/screens/profile_screen.dart';
 
 // ignore: must_be_immutable
@@ -13,7 +14,7 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   final List<Widget> _widgetOptions =  <Widget>[
-   Container(),
+   HomeScreen(),
     Container(),
     Container(),
     ProfileScreen(),

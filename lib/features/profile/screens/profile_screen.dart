@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:qmed_employee/core/const/color_styles.dart';
 import 'package:qmed_employee/core/get_it/injection_container.dart';
+import 'package:qmed_employee/features/login/screens/login_screen.dart';
 import 'package:qmed_employee/features/profile/logic/bloc/profile_bloc.dart';
 import 'package:qmed_employee/features/profile/screens/faq/screens/faq_screen.dart';
 import 'package:qmed_employee/features/profile/screens/my_profile/screens/my_profile_screen.dart';
@@ -16,10 +18,30 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isOn = false;
+
+  Future<void> _logout(BuildContext context) async {
+    var tokenBox = Hive.box('token');
+    await tokenBox.delete('token');
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen()
+      ),
+      (route) => false,
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorStyles.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: ColorStyles.primaryColor,
+        title: Text('Профиль',style: GoogleFonts.montserrat(fontSize: 17,
+        color: ColorStyles.whiteColor,fontWeight: FontWeight.w500,
+        ),
+      ),
+      ),
       body: SafeArea(
         child: BlocProvider(
           create: (context) => sl<ProfileBloc>()..add(GetProfile()),
@@ -33,54 +55,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
-                      children: [
-                        Container(
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                      ),
-                      height: 140,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            flex: 7,
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 20,top: 30),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text('${state.response.lastName} ${state.response.firstName}',
-                                      style: GoogleFonts.montserrat(fontSize: 13,fontWeight: FontWeight.w500,color: ColorStyles.whiteColor),),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text('${state.response.middleName}',
-                                      style: GoogleFonts.montserrat(fontSize: 13,fontWeight: FontWeight.w500,color: ColorStyles.whiteColor),),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text('${state.response.mail}',
-                                      style: GoogleFonts.montserrat(fontSize: 13,fontWeight: FontWeight.w500,color: ColorStyles.whiteColor),),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                    children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: ColorStyles.whiteColor,
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                               mainAxisAlignment: MainAxisAlignment.start,
+                               children: [
+                                Text('${state.response.lastName} ${state.response.firstName}',
+                                 style: GoogleFonts.montserrat(fontSize: 13,fontWeight: FontWeight.w500,color: ColorStyles.primaryColor),),
+                              ],
+                             ),
+                             Row(
+                               mainAxisAlignment: MainAxisAlignment.start,
+                               children: [
+                                 Text('${state.response.middleName}',
+                                 style: GoogleFonts.montserrat(fontSize: 13,fontWeight: FontWeight.w500,color: ColorStyles.primaryColor),),
+                               ],
                             ),
-                          ),
-                          Expanded(
-                            flex: 5,
-                            child: Image.asset('assets/images/png/logo.png',width: 140,height: 120,)
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+              ),
                     ),
-                    const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
@@ -256,31 +259,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 20),
-                      child: Container(
-                       padding: const EdgeInsets.all(12),
-                       decoration: BoxDecoration(
-                         borderRadius: BorderRadius.circular(12),
-                        color: ColorStyles.whiteColor,
-                        border: Border.all(color: Colors.red,width: 1)
-                       ),
-                       child: Row(
-                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                             children: [
-                               Text('Выйти из аккаунта',
-                               style: GoogleFonts.montserrat(fontSize: 13,color: Colors.red,fontWeight: FontWeight.w500),),
-                                Text('Нажмите, чтобы выйти',
-                               style: GoogleFonts.montserrat(fontSize: 11,color: Colors.red,fontWeight: FontWeight.w400),),
-                             ],
-                           ),
-                           Icon(Icons.arrow_forward_ios_outlined,color: Colors.red,size: 16,)
-                         ],
-                       ),
-                                        ),
+                    GestureDetector(
+                      onTap: (){
+                        _logout(context);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 20),
+                        child: Container(
+                         padding: const EdgeInsets.all(12),
+                         decoration: BoxDecoration(
+                           borderRadius: BorderRadius.circular(12),
+                          color: ColorStyles.whiteColor,
+                          border: Border.all(color: Colors.red,width: 1)
+                         ),
+                         child: Row(
+                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                           children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 Text('Выйти из аккаунта',
+                                 style: GoogleFonts.montserrat(fontSize: 13,color: Colors.red,fontWeight: FontWeight.w500),),
+                                  Text('Нажмите, чтобы выйти',
+                                 style: GoogleFonts.montserrat(fontSize: 11,color: Colors.red,fontWeight: FontWeight.w400),),
+                               ],
+                             ),
+                             Icon(Icons.arrow_forward_ios_outlined,color: Colors.red,size: 16,)
+                           ],
+                         ),
+                                          ),
+                      ),
                     ),
 
                   ]

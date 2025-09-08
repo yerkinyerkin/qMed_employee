@@ -5,6 +5,7 @@ import 'package:qmed_employee/core/bottomnavbar/bottom_navbar.dart';
 import 'package:qmed_employee/core/const/color_styles.dart';
 import 'package:qmed_employee/core/get_it/injection_container.dart';
 import 'package:qmed_employee/core/hive/hive_init.dart';
+import 'package:qmed_employee/features/home/logic/bloc/home_bloc.dart';
 import 'package:qmed_employee/features/login/logic/bloc/login_bloc.dart';
 import 'package:qmed_employee/features/login/screens/login_screen.dart';
 import 'package:qmed_employee/features/profile/logic/bloc/profile_bloc.dart';
@@ -30,6 +31,9 @@ class MyApp extends StatelessWidget {
           create: (_) => sl(),
         ),
         BlocProvider<ProfileBloc>(
+          create: (_) => sl(),
+        ),
+        BlocProvider<HomeBloc>(
           create: (_) => sl(),
         ),
       ],

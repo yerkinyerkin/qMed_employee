@@ -1,4 +1,7 @@
 import 'package:get_it/get_it.dart';
+import 'package:qmed_employee/features/home/logic/bloc/home_bloc.dart';
+import 'package:qmed_employee/features/home/logic/data/datasources/home_datasource.dart';
+import 'package:qmed_employee/features/home/logic/data/repositories/home_repository.dart';
 import 'package:qmed_employee/features/login/logic/bloc/login_bloc.dart';
 import 'package:qmed_employee/features/login/logic/data/datasources/login_datasource.dart';
 import 'package:qmed_employee/features/login/logic/data/repositories/login_repository.dart';
@@ -20,4 +23,10 @@ void initGetIt() async {
   sl.registerLazySingleton<ProfileRepository>(() => ProfileRepositoryImpl(sl()));
 
   sl.registerLazySingleton<ProfileDataSource>(() => ProfileDataSourceImpl());
+
+  sl.registerFactory<HomeBloc>(() => HomeBloc(sl()));
+
+  sl.registerLazySingleton<HomeRepository>(() => HomeRepositoryImpl(sl()));
+
+  sl.registerLazySingleton<HomeDataSource>(() => HomeDatasourceImpl());
 }

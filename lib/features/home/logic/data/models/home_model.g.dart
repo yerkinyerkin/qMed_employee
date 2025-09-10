@@ -7,6 +7,17 @@ part of 'home_model.dart';
 // **************************************************************************
 
 HomeModel _$HomeModelFromJson(Map<String, dynamic> json) => HomeModel(
+  data:
+      (json['data'] as List<dynamic>?)
+          ?.map((e) => Data.fromJson(e as Map<String, dynamic>))
+          .toList(),
+);
+
+Map<String, dynamic> _$HomeModelToJson(HomeModel instance) => <String, dynamic>{
+  'data': instance.data,
+};
+
+Data _$DataFromJson(Map<String, dynamic> json) => Data(
   userId: (json['user_id'] as num?)?.toInt(),
   lastName: json['last_name'] as String?,
   firstName: json['first_name'] as String?,
@@ -42,9 +53,10 @@ HomeModel _$HomeModelFromJson(Map<String, dynamic> json) => HomeModel(
           : Polyclinic.fromJson(json['polyclinic'] as Map<String, dynamic>),
   medStaffId: (json['med_staff_id'] as num?)?.toInt(),
   isActive: json['is_active'] as bool?,
+  zone: json['zone'] as String?,
 );
 
-Map<String, dynamic> _$HomeModelToJson(HomeModel instance) => <String, dynamic>{
+Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
   'user_id': instance.userId,
   'last_name': instance.lastName,
   'first_name': instance.firstName,
@@ -68,6 +80,7 @@ Map<String, dynamic> _$HomeModelToJson(HomeModel instance) => <String, dynamic>{
   'polyclinic': instance.polyclinic,
   'med_staff_id': instance.medStaffId,
   'is_active': instance.isActive,
+  'zone': instance.zone,
 };
 
 Sectors _$SectorsFromJson(Map<String, dynamic> json) => Sectors(

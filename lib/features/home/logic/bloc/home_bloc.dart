@@ -14,7 +14,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       (event, emit) async {
         emit(HomeLoading());
         try {
-          final List<HomeModel> response =
+          final HomeModel response =
               await homeRepository.getPatients(event.search);
           emit(HomeSuccess(response));
         } on DioError catch (e) {

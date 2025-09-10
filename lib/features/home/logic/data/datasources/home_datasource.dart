@@ -14,7 +14,7 @@ class HomeDatasourceImpl implements HomeDataSource {
   @override
   Future<Response> getPatients(String search) async {
     Response response = await dio.get(
-      '/employee/${userId.get('userId')}/patients',
+      '/polyclinic/${9}/patients',
       queryParameters: {
         'search': search,
       }

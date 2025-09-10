@@ -74,72 +74,102 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 12),
                       Expanded(
-                        child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: state.response.length,
-                        itemBuilder: (BuildContext context, int index){
-                          return Column(
+                        child: SingleChildScrollView(
+                          child: Column(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: ColorStyles.whiteColor,
-                                  borderRadius: BorderRadius.circular(12),
+                              ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: state.response.data?.length,
+                          itemBuilder: (BuildContext context, int index){
+                            return state.response.data?[index].zone == 'green' ? Column(
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('${state.response.data?[index].lastName} ${state.response.data?[index].firstName}',
+                                      style: GoogleFonts.montserrat(fontSize: 14,color: ColorStyles.blackColor,fontWeight: FontWeight.w600),),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Text('ИИН: ',
+                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
+                                           Text('${state.response.data?[index].iin}',
+                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Text('Заболевания: ',style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
+                                          Text(state.response.data?[index].diseases?.map(
+                                            (disease) => disease.name ?? "").join(', ') ?? '',
+                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          constraints: const BoxConstraints(minWidth: 40,minHeight: 40),
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(12),
-                                            color: const Color.fromARGB(255, 230, 229, 229),
-                                          ),
-                                          child: Text('${state.response[index].lastName.toString().substring(0,1)}${state.response[index].firstName.toString().substring(0,1)}',
-                                          style: GoogleFonts.montserrat(fontSize: 16,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text('${state.response[index].lastName} ${state.response[index].firstName}',
-                                            style: GoogleFonts.montserrat(fontSize: 14,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
-                                            Text('ИИН: ${state.response[index].iin}',
-                                            style: GoogleFonts.montserrat(fontSize: 12,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                    // SizedBox(
-                                    //   width: 30,
-                                    //   child: ListView.builder(
-                                    //     itemCount: state.response[index].diseases?.length,
-                                    //     physics: const NeverScrollableScrollPhysics(),
-                                    //     shrinkWrap: true,
-                                    //     itemBuilder: (BuildContext context, int indexindex){
-                                    //     return Container(
-                                    //       padding: const EdgeInsets.all(4),
-                                    //       decoration: BoxDecoration(
-                                    //         borderRadius: BorderRadius.circular(8),
-                                    //         color: const Color.fromARGB(255, 230, 229, 229),
-                                    //       ),
-                                    //       child: Text('${state.response[index].diseases?[indexindex].name}',
-                                    //       style: GoogleFonts.montserrat(fontSize: 12,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
-                                    //     );
-                                    //   },),
-                                    // ),
-                                  ],
+                                const SizedBox(height: 8),
+                              ],
+                            ) : SizedBox();
+                          },
+                                              ),
+                          ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: state.response.data?.length,
+                          itemBuilder: (BuildContext context, int index){
+                            return Column(
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: ColorStyles.whiteColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('${state.response.data?[index].lastName} ${state.response.data?[index].firstName}',
+                                      style: GoogleFonts.montserrat(fontSize: 14,color: ColorStyles.blackColor,fontWeight: FontWeight.w600),),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Text('ИИН: ',
+                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
+                                           Text('${state.response.data?[index].iin}',
+                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Text('Заболевания: ',style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
+                                          Text(state.response.data?[index].diseases?.map(
+                                            (disease) => disease.name ?? "").join(', ') ?? '',
+                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
+                                const SizedBox(height: 8),
+                              ],
+                            );
+                          },
+                                              ),
                             ],
-                          );
-                        },
-                                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),

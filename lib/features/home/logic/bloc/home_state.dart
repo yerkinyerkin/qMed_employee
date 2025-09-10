@@ -7,7 +7,7 @@ class HomeInitial extends HomeState {}
 class HomeLoading extends HomeState {}
 
 class HomeSuccess extends HomeState {
-  final List<HomeModel> response;
+  final HomeModel response;
 
   HomeSuccess(this.response);
 }

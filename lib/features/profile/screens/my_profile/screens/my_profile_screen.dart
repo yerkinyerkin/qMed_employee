@@ -37,6 +37,21 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   children: [
                     Row(
                       children: [
+                        Text('Поликлиника : ',
+                        style: GoogleFonts.montserrat(fontSize: 14,color: ColorStyles.primaryColor,fontWeight: FontWeight.w600),),
+                        Text('${widget.response?.polyclinic?.name}',
+                        style: GoogleFonts.montserrat(fontSize: 13,color: ColorStyles.primaryColor,fontWeight: FontWeight.w600),),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      height: 1,
+                      color: const Color.fromARGB(255, 220, 220, 220),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
                         Text('ФИО : ',
                         style: GoogleFonts.montserrat(fontSize: 13,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
                         Text('${widget.response?.firstName} ${widget.response?.lastName} ${widget.response?.middleName}',

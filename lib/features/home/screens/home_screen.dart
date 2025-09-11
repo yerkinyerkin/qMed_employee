@@ -37,7 +37,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Color _textOnZone(String? zone) {
     switch (zone) {
       case 'green':
+        return ColorStyles.whiteColor;
       case 'yellow':
+        return ColorStyles.blackColor;
       case 'red':
         return ColorStyles.whiteColor;
       default:
@@ -162,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               color: textColor.withOpacity(0.9),
                                               fontWeight: FontWeight.w400,
                                             )),
-                                          Text('${p.iin ?? ''}',
+                                          Text(p.iin ?? '',
                                             style: GoogleFonts.montserrat(
                                               fontSize: 11,
                                               color: textColor.withOpacity(0.9),

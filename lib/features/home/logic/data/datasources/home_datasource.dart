@@ -1,25 +1,31 @@
 import 'package:dio/dio.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:qmed_employee/core/dio_interceptor/dio_interceptor.dart';
 
 abstract class HomeDataSource {
-  Future<Response> getPatients(String search);
+  Future<Response> getPatients({
+    required String search,
+    required int page,
+    required int size,
+  });
 }
 
 class HomeDatasourceImpl implements HomeDataSource {
   Dio get dio => DioInterceptor(Dio()).getDio;
 
-  Box userId = Hive.box('userId');
-
   @override
-  Future<Response> getPatients(String search) async {
-    Response response = await dio.get(
-      '/polyclinic/${9}/patients',
+  Future<Response> getPatients({
+    required String search,
+    required int page,
+    required int size,
+  }) async {
+    final response = await dio.get(
+      '/polyclinic/${9}/patients', // TODO: replace 9 with actual id if needed
       queryParameters: {
         'search': search,
-      }
+        'page': page,
+        'size': size,
+      },
     );
-
     return response;
   }
 }

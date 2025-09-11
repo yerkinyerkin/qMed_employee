@@ -5,8 +5,9 @@ part 'home_model.g.dart';
 @JsonSerializable()
 class HomeModel {
   List<Data>? data;
+  int? total;
 
-  HomeModel({this.data});
+  HomeModel({this.data, this.total});
 
   factory HomeModel.fromJson(Map<String, dynamic> json) =>
       _$HomeModelFromJson(json);
@@ -54,12 +55,15 @@ class Data {
   @JsonKey(name: 'is_active')
   bool? isActive;
   String? zone;
+  @JsonKey(name: 'last_survey_at')
+  String? lastSurveyAt;
 
   Data({ this.userId,this.lastName,this.firstName,this.middleName,
   this.iin,this.birthDate,this.address,this.phoneNumber,this.relativePhoneNumber,
   this.gender,this.mail,this.language,this.heightCm,this.weightKg,
   this.bloodPressure,this.sugarLevel,this.heartRate,this.diseases,
-  this.sector,this.department,this.polyclinic,this.medStaffId,this.isActive,this.zone,
+  this.sector,this.department,this.polyclinic,this.medStaffId,
+  this.isActive,this.zone,this.lastSurveyAt
   });
 
   factory Data.fromJson(Map<String, dynamic> json) =>

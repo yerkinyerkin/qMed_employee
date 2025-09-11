@@ -7,13 +7,36 @@ class HomeInitial extends HomeState {}
 class HomeLoading extends HomeState {}
 
 class HomeSuccess extends HomeState {
-  final HomeModel response;
+  final List<Data> response; // accumulated items
+  final int page;            // current page (1-based)
+  final int totalPages;      // from API
+  final bool isLoadingMore;
 
-  HomeSuccess(this.response);
+  bool get hasMore => page < totalPages;
+
+  HomeSuccess(
+    this.response, {
+    required this.page,
+    required this.totalPages,
+    this.isLoadingMore = false,
+  });
+
+  HomeSuccess copyWith({
+    List<Data>? response,
+    int? page,
+    int? totalPages,
+    bool? isLoadingMore,
+  }) {
+    return HomeSuccess(
+      response ?? this.response,
+      page: page ?? this.page,
+      totalPages: totalPages ?? this.totalPages,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
 }
 
 class HomeFailure extends HomeState {
-  final Response response;
-
-  HomeFailure(this.response);
+  final Response? error;
+  HomeFailure(this.error);
 }

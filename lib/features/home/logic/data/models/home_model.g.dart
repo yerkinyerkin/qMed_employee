@@ -11,10 +11,12 @@ HomeModel _$HomeModelFromJson(Map<String, dynamic> json) => HomeModel(
       (json['data'] as List<dynamic>?)
           ?.map((e) => Data.fromJson(e as Map<String, dynamic>))
           .toList(),
+  total: (json['total'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$HomeModelToJson(HomeModel instance) => <String, dynamic>{
   'data': instance.data,
+  'total': instance.total,
 };
 
 Data _$DataFromJson(Map<String, dynamic> json) => Data(
@@ -54,6 +56,7 @@ Data _$DataFromJson(Map<String, dynamic> json) => Data(
   medStaffId: (json['med_staff_id'] as num?)?.toInt(),
   isActive: json['is_active'] as bool?,
   zone: json['zone'] as String?,
+  lastSurveyAt: json['last_survey_at'] as String?,
 );
 
 Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
@@ -81,6 +84,7 @@ Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
   'med_staff_id': instance.medStaffId,
   'is_active': instance.isActive,
   'zone': instance.zone,
+  'last_survey_at': instance.lastSurveyAt,
 };
 
 Sectors _$SectorsFromJson(Map<String, dynamic> json) => Sectors(

@@ -16,11 +16,33 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _controller = TextEditingController();
+  final _scrollController = ScrollController();
 
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  Color _zoneColor(String? zone) {
+    switch (zone) {
+      case 'green': return Colors.green;
+      case 'yellow': return Colors.yellow;
+      case 'red': return Colors.red;
+      default: return ColorStyles.whiteColor;
+    }
+  }
+
+  Color _textOnZone(String? zone) {
+    switch (zone) {
+      case 'green':
+      case 'yellow':
+      case 'red':
+        return ColorStyles.whiteColor;
+      default:
+        return ColorStyles.blackColor;
+    }
   }
 
   @override
@@ -31,32 +53,44 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: ColorStyles.primaryColor,
         actions: [
           GestureDetector(
-            onTap: (){
-              Navigator.push(context,
-              MaterialPageRoute(builder: (context) => NotificationScreen()));
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationScreen()),
+              );
             },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Icon(Icons.notifications_none,
-              color: ColorStyles.whiteColor,
-              size: 23,),
+            child: const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Icon(Icons.notifications_none, color: Colors.white, size: 23),
             ),
           )
         ],
-        title: Text('Главная',style: GoogleFonts.montserrat(fontSize: 17,
-        color: ColorStyles.whiteColor,fontWeight: FontWeight.w500,
+        title: Text(
+          'Главная',
+          style: GoogleFonts.montserrat(
+            fontSize: 17,
+            color: ColorStyles.whiteColor,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-      ),
       ),
       body: SafeArea(
         child: BlocProvider(
           create: (context) => sl<HomeBloc>()..add(GetPatients('')),
           child: BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
-              if(state is HomeLoading){
-                return Center(child: const CircularProgressIndicator());
+              if (state is HomeLoading) {
+                return const Center(child: CircularProgressIndicator());
               }
-              if(state is HomeSuccess){
+              if (state is HomeFailure) {
+                return Center(
+                  child: Text('Ошибка загрузки', style: GoogleFonts.montserrat(fontSize: 14)),
+                );
+              }
+              if (state is HomeSuccess) {
+                final items = state.response; // accumulated, paged list
+                final itemCount = items.length + (state.isLoadingMore ? 1 : 0);
+
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -66,115 +100,110 @@ class _HomeScreenState extends State<HomeScreen> {
                         backgroundColor: const Color.fromARGB(255, 239, 237, 237),
                         style: GoogleFonts.montserrat(fontSize: 13),
                         placeholder: "Search...",
-                        onSubmitted: (value) {
-                          context.read<HomeBloc>().add(
-                            GetPatients(_controller.text.trim()),
-                          );
+                        onSubmitted: (_) {
+                          _scrollController.jumpTo(0);
+                          context.read<HomeBloc>().add(GetPatients(_controller.text.trim()));
                         },
                       ),
                       const SizedBox(height: 12),
                       Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              ListView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: state.response.data?.length,
-                          itemBuilder: (BuildContext context, int index){
-                            return state.response.data?[index].zone == 'green' ? Column(
-                              children: [
-                                Container(
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: (n) {
+                            // Trigger next page when little content remains below
+                            if (n.metrics.extentAfter < 300) {
+                              final s = context.read<HomeBloc>().state;
+                              if (s is HomeSuccess && s.hasMore && !s.isLoadingMore) {
+                                context.read<HomeBloc>().add(GetNextPatients());
+                              }
+                            }
+                            return false;
+                          },
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            itemCount: itemCount,
+                            itemBuilder: (context, index) {
+                              if (index >= items.length) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(child: CircularProgressIndicator()),
+                                );
+                              }
+
+                              final p = items[index];
+                              final zone = p.zone; // 'green' | 'yellow' | 'red' | null
+                              final bg = _zoneColor(zone);
+                              final textColor = _textOnZone(zone);
+                              final isDefault = (zone != 'green' && zone != 'yellow' && zone != 'red');
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.green,
+                                    color: bg,
                                     borderRadius: BorderRadius.circular(12),
+                                    border: isDefault ? Border.all(color: const Color(0xFFE5E5E5)) : null,
                                   ),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('${state.response.data?[index].lastName} ${state.response.data?[index].firstName}',
-                                      style: GoogleFonts.montserrat(fontSize: 14,color: ColorStyles.blackColor,fontWeight: FontWeight.w600),),
+                                      Text(
+                                        '${p.lastName ?? ''} ${p.firstName ?? ''}',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 14, color: textColor, fontWeight: FontWeight.w600),
+                                      ),
                                       const SizedBox(height: 8),
                                       Row(
                                         children: [
                                           Text('ИИН: ',
-                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
-                                           Text('${state.response.data?[index].iin}',
-                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 11,
+                                              color: textColor.withOpacity(0.9),
+                                              fontWeight: FontWeight.w400,
+                                            )),
+                                          Text('${p.iin ?? ''}',
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 11,
+                                              color: textColor.withOpacity(0.9),
+                                              fontWeight: FontWeight.w400,
+                                            )),
                                         ],
                                       ),
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
                                         children: [
-                                          Text('Заболевания: ',style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
-                                          Text(state.response.data?[index].diseases?.map(
-                                            (disease) => disease.name ?? "").join(', ') ?? '',
-                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
+                                          Text('Заболевания: ',
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 11,
+                                              color: textColor.withOpacity(0.9),
+                                              fontWeight: FontWeight.w400,
+                                            )),
+                                          Expanded(
+                                            child: Text(
+                                              (p.diseases ?? [])
+                                                  .map((d) => d.name ?? '')
+                                                  .where((s) => s.isNotEmpty)
+                                                  .join(', '),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 11, color: textColor, fontWeight: FontWeight.w500),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                              ],
-                            ) : SizedBox();
-                          },
-                                              ),
-                          ListView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: state.response.data?.length,
-                          itemBuilder: (BuildContext context, int index){
-                            return Column(
-                              children: [
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: ColorStyles.whiteColor,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('${state.response.data?[index].lastName} ${state.response.data?[index].firstName}',
-                                      style: GoogleFonts.montserrat(fontSize: 14,color: ColorStyles.blackColor,fontWeight: FontWeight.w600),),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Text('ИИН: ',
-                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
-                                           Text('${state.response.data?[index].iin}',
-                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          Text('Заболевания: ',style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.greyColor,fontWeight: FontWeight.w400),),
-                                          Text(state.response.data?[index].diseases?.map(
-                                            (disease) => disease.name ?? "").join(', ') ?? '',
-                                          style: GoogleFonts.montserrat(fontSize: 11,color: ColorStyles.blackColor,fontWeight: FontWeight.w500),),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                              ],
-                            );
-                          },
-                                              ),
-                            ],
+                              );
+                            },
                           ),
                         ),
                       ),
                     ],
                   ),
                 );
-            }
+              }
               return const Offstage();
             },
           ),

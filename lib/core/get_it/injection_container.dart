@@ -24,9 +24,9 @@ void initGetIt() async {
 
   sl.registerLazySingleton<ProfileDataSource>(() => ProfileDataSourceImpl());
 
-  sl.registerFactory<HomeBloc>(() => HomeBloc(sl()));
+  sl.registerFactory<HomeBloc>(() => HomeBloc(sl(),sl()));
 
-  sl.registerLazySingleton<HomeRepository>(() => HomeRepositoryImpl(sl()));
+  sl.registerLazySingleton<HomeRepository>(() => HomeRepositoryImpl(sl(),sl()));
 
   sl.registerLazySingleton<HomeDataSource>(() => HomeDatasourceImpl());
 }

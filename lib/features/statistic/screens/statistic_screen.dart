@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:dio/dio.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 class StatisticScreen extends StatefulWidget {
   const StatisticScreen({super.key});
 
@@ -10,9 +15,9 @@ class StatisticScreen extends StatefulWidget {
 class _StatisticScreenState extends State<StatisticScreen> {
   int selectedYear = DateTime.now().year;
   int selectedMonth = DateTime.now().month;
-  String selectedPeriod = '3'; 
+  String selectedPeriod = ''; 
   DateTime? selectedDate;
-  String selectedDisease = 'ХСН';
+  String selectedDisease = 'Все';
   List<DateTime> selectedDates = [];
 
   final List<String> months = [
@@ -21,6 +26,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
   ];
 
   final List<String> diseases = [
+    'Все',
     'ХСН',
     'АГ',
     'СД',
@@ -52,14 +58,151 @@ class _StatisticScreenState extends State<StatisticScreen> {
     return 'Период ${_formatDate(selectedDates.first)} - ${_formatDate(selectedDates.last)}';
   }
 
+  String _getSelectedPeriodText() {
+    if (selectedPeriod == '3') {
+      DateTime endDate = selectedDates.length == 1 ? selectedDates.first : DateTime.now();
+      DateTime startDate = DateTime(endDate.year, endDate.month - 3, endDate.day);
+      return 'Период ${_formatDate(startDate)} - ${_formatDate(endDate)}';
+    } else if (selectedPeriod == '6') {
+      DateTime endDate = selectedDates.length == 1 ? selectedDates.first : DateTime.now();
+      DateTime startDate = DateTime(endDate.year, endDate.month - 6, endDate.day);
+      return 'Период ${_formatDate(startDate)} - ${_formatDate(endDate)}';
+    }
+    return '';
+  }
+
+  int _getSelectedPeriodCount() {
+    if (selectedPeriod == '3') {
+      return 3;
+    } else if (selectedPeriod == '6') {
+      return 6;
+    }
+    return 0;
+  }
+
+  Future<void> _downloadReport() async {
+    if (selectedDates.length != 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Выберите период из двух дат')),
+      );
+      return;
+    }
+
+    try {
+      Box tokenBox = Hive.box('token');
+      String? token = tokenBox.get('token');
+      
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Токен авторизации не найден')),
+        );
+        return;
+      }
+
+      String fromDate = _formatDate(selectedDates.first);
+      String toDate = _formatDate(selectedDates.last);
+
+      Dio dio = Dio();
+      
+      String url = 'https://qmedbackprod.chickenkiller.com/polyclinic/9/survey-report-excel?from=$fromDate&to=$toDate';
+      
+      if (selectedDisease != 'Все') {
+        String diseaseId = '';
+        switch (selectedDisease) {
+          case 'АГ':
+            diseaseId = '1';
+            break;
+          case 'ХСН':
+            diseaseId = '2';
+            break;
+          case 'СД':
+            diseaseId = '3';
+            break;
+        }
+        if (diseaseId.isNotEmpty) {
+          url += '&disease_id=$diseaseId';
+        }
+      }
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      Response response = await dio.get(
+        url,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          },
+          responseType: ResponseType.bytes,
+        ),
+      );
+
+      Navigator.of(context).pop();
+
+      if (response.statusCode == 200) {
+        await _saveFile(response.data, 'survey_report_${fromDate}_to_${toDate}.xlsx');
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Отчет успешно скачан')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка скачивания: $e')),
+      );
+    }
+  }
+
+  Future<void> _saveFile(List<int> bytes, String fileName) async {
+    if (Platform.isAndroid) {
+      await Permission.storage.request();
+    }
+
+    Directory? directory;
+    if (Platform.isAndroid) {
+      directory = await getExternalStorageDirectory();
+    } else if (Platform.isIOS) {
+      directory = await getApplicationDocumentsDirectory();
+    }
+
+    if (directory != null) {
+      String filePath = '${directory.path}/$fileName';
+      File file = File(filePath);
+      await file.writeAsBytes(bytes);
+      
+      print('Файл сохранен по пути: $filePath');
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Файл сохранен: $filePath'),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Статистика',
-        style: GoogleFonts.montserrat(fontSize: 18,fontWeight: FontWeight.w600,color: Colors.black),
+        style: GoogleFonts.montserrat(fontSize: 18,fontWeight: FontWeight.w600,color: Colors.white),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF1C6BA4),
         foregroundColor: Colors.black,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -167,6 +310,13 @@ class _StatisticScreenState extends State<StatisticScreen> {
                     onPressed: () {
                       setState(() {
                         selectedPeriod = '3';
+                        DateTime endDate = selectedDates.length == 1 ? selectedDates.first : DateTime.now();
+                        DateTime startDate = DateTime(endDate.year, endDate.month - 3, endDate.day);
+                        
+                        selectedDates.clear();
+                        selectedDates.add(startDate);
+                        selectedDates.add(endDate);
+                        selectedDates.sort();
                       });
                     },
                     style: ElevatedButton.styleFrom(
@@ -183,6 +333,13 @@ class _StatisticScreenState extends State<StatisticScreen> {
                     onPressed: () {
                       setState(() {
                         selectedPeriod = '6';
+                        DateTime endDate = selectedDates.length == 1 ? selectedDates.first : DateTime.now();
+                        DateTime startDate = DateTime(endDate.year, endDate.month - 6, endDate.day);
+                        
+                        selectedDates.clear();
+                        selectedDates.add(startDate);
+                        selectedDates.add(endDate);
+                        selectedDates.sort();
                       });
                     },
                     style: ElevatedButton.styleFrom(
@@ -205,7 +362,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
               child: _buildCustomCalendar(),
             ),
             
-            if (selectedDates.isNotEmpty) ...[
+            if (selectedDates.isNotEmpty || (selectedPeriod.isNotEmpty && selectedPeriod != '')) ...[
               const SizedBox(height: 16),
               Container(
                 width: double.infinity,
@@ -218,7 +375,11 @@ class _StatisticScreenState extends State<StatisticScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      'Выбрано дат ${selectedDates.length}',
+                      selectedDates.length == 2
+                          ? 'Выбрано дат ${selectedDates.length}'
+                          : selectedPeriod.isNotEmpty
+                              ? 'Выбран период ${_getSelectedPeriodCount()} месяцев'
+                              : 'Выбрано дат ${selectedDates.length}',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -226,7 +387,11 @@ class _StatisticScreenState extends State<StatisticScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _getPeriodText(),
+                      selectedDates.length == 2
+                          ? _getPeriodText()
+                          : selectedPeriod.isNotEmpty
+                              ? _getSelectedPeriodText()
+                              : _getPeriodText(),
                       style: GoogleFonts.montserrat(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -288,11 +453,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Показ статистики...')),
-                  );
-                },
+                onPressed: _downloadReport,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF1C6BA4),
                   foregroundColor: Colors.white,

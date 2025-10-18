@@ -60,7 +60,6 @@ class DioInterceptor {
       return true;
     } else {
       log("FAILURE");
-      // refresh token is wrong
       accessToken = null;
       _storage.clear();
       return false;

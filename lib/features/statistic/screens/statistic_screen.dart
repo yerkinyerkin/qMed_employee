@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:qmed_employee/core/common/snackbar_service.dart';
 import 'dart:io';
 class StatisticScreen extends StatefulWidget {
   const StatisticScreen({super.key});
@@ -82,9 +83,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
 
   Future<void> _downloadReport() async {
     if (selectedDates.length != 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Выберите период из двух дат')),
-      );
+      SnackbarService.showWarning(context, 'Выберите период из двух дат');
       return;
     }
 
@@ -93,9 +92,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
       String? token = tokenBox.get('token');
       
       if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Токен авторизации не найден')),
-        );
+        SnackbarService.showError(context, 'Токен авторизации не найден');
         return;
       }
 
@@ -148,22 +145,16 @@ class _StatisticScreenState extends State<StatisticScreen> {
       if (response.statusCode == 200) {
         await _saveFile(response.data, 'survey_report_${fromDate}_to_${toDate}.xlsx');
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Отчет успешно скачан')),
-        );
+        SnackbarService.showSuccess(context, 'Отчет успешно скачан');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: ${response.statusCode}')),
-        );
+        SnackbarService.showError(context, 'Ошибка: ${response.statusCode}');
       }
     } catch (e) {
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка скачивания: $e')),
-      );
+      SnackbarService.showError(context, 'Ошибка скачивания: $e');
     }
   }
 
@@ -186,12 +177,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
       
       print('Файл сохранен по пути: $filePath');
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Файл сохранен: $filePath'),
-          duration: const Duration(seconds: 5),
-        ),
-      );
+      SnackbarService.showInfo(context, 'Файл успешно сохранен');
     }
   }
 
@@ -396,6 +382,7 @@ class _StatisticScreenState extends State<StatisticScreen> {
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF1C6BA4),
+                        decoration: TextDecoration.none,
                       ),
                     ),
                   ],

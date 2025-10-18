@@ -7,7 +7,7 @@ class AddTextField extends StatelessWidget {
     this.hintText,
     this.prefix,
     this.suffix,
-    this.fillColor = const Color(0xFFFFFFFF),
+    this.fillColor = Colors.white,
     this.height = 38,
     this.borderRadius = 10,
     this.onChanged,
@@ -87,15 +87,15 @@ class AddTextField extends StatelessWidget {
 
           border: OutlineInputBorder(
             borderRadius: radius,
-            borderSide: BorderSide.none,
+            borderSide: BorderSide(width: 0.5, color: Colors.grey[300]!),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: radius,
-            borderSide: BorderSide.none,
+            borderSide: BorderSide(width: 0.5, color: Colors.grey[300]!),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: radius,
-            borderSide: BorderSide.none,
+            borderSide: BorderSide(width: 0.5, color: Colors.grey[300]!),
           ),
         ),
       ),

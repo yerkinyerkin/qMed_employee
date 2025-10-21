@@ -810,6 +810,27 @@ Color _getBMIColor(double bmi) {
                   ],
                 ),
               ),
+              const SizedBox(height:10),
+     SizedBox(
+  width: 200, 
+  height: 35, 
+  child: TextButton(
+    style: TextButton.styleFrom(
+      backgroundColor: Color(0xFF1C6BA4),
+      foregroundColor: Colors.white, 
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    onPressed: () {
+      print('Кнопка нажата!');
+    },
+    child: const Text('Сохранить'),
+  ),
+)
+
+
         
             ],
           ),

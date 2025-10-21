@@ -19,7 +19,10 @@ class DioInterceptor {
       options.receiveTimeout = const Duration(seconds: 30);
         options.headers['Accept'] = 'application/json';
 
-      options.baseUrl = 'https://qmedbackprod.chickenkiller.com';
+
+
+      //'https://qmedbackprod.chickenkiller.com';
+      options.baseUrl = 'https://qmedback.mooo.com';
       if (accessToken != null) {
         options.headers['Authorization'] = 'Bearer $accessToken';
         options.headers['Accept'] = 'application/json';

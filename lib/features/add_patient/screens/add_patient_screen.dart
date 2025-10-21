@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qmed_employee/core/const/color_styles.dart';
+import 'package:qmed_employee/core/common/snackbar_service.dart';
 import 'package:qmed_employee/features/add_patient/widgets/add_text_field.dart';
-
+import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_bloc.dart';
+import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_event.dart';
+import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_state.dart';
+import 'package:qmed_employee/features/add_patient/logic/data/models/add_patient_model.dart';
+import 'package:qmed_employee/features/add_patient/logic/data/models/sector_model.dart';
 class AddPatientScreen extends StatefulWidget {
   const AddPatientScreen({super.key});
 
@@ -13,18 +19,12 @@ class AddPatientScreen extends StatefulWidget {
 class _AddPatientScreenState extends State<AddPatientScreen> {
   String? selectedGender;
   String? selectedNoezologya;
-  String? selectedUchastok;
   String? smokingStatus;
   bool? hasCVD;
   bool? hasRetinopathy;
   bool? takesStatin;
-  final List<String> uchastokList = [
-  'Участок 1',
-  'Участок 2', 
-  'Участок 3',
-  'Участок 4',
-  'Участок 5',
-];
+  SectorModel? selectedSector;
+  List<SectorModel> sectors = [];
   double? bmi;
   final _uchastokController = TextEditingController();
   final _surnameController = TextEditingController();
@@ -55,11 +55,14 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   final _retinopathyDate = TextEditingController();
   final _sakDate = TextEditingController();
 
-  // Добавьте эти переменные в класс _AddPatientScreenState
   bool hasHypertension = false;
   bool hasHeartFailure = false; 
   bool hasDiabetes = false;
-
+  @override
+  void initState() {
+    super.initState();
+    context.read<AddPatientBloc>().add(LoadSectors());
+  }
   @override
   void dispose() {
     _uchastokController.dispose();
@@ -117,16 +120,46 @@ Color _getBMIColor(double bmi) {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Color(0xFF1C6BA4),
-        title: Text('Добавить пациента',style: GoogleFonts.montserrat(fontSize: 17,
-        color: ColorStyles.whiteColor,fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
+    return BlocListener<AddPatientBloc, AddPatientState>(
+      listener: (context, state) {
+        if (state is AddPatientSuccess) {
+          // Показать успешное сообщение
+          SnackbarService.showSuccess(context, 'Пациент успешно добавлен!');
+          // Вернуться на предыдущий экран
+          Navigator.pop(context);
+        }
+        if (state is AddPatientFailure) {
+          // Показать ошибку
+          SnackbarService.showError(context, 'Ошибка: ${state.error}');
+        }
+        if (state is SectorsLoaded) {
+          setState(() {
+            sectors = state.sectors;
+          });
+          print('Загружено участков: ${sectors.length}');
+          for (var sector in sectors) {
+            print('Участок: ${sector.address} (ID: ${sector.sectorId})');
+          }
+        }
+        if (state is SectorsLoadFailed) {
+          print('Ошибка загрузки участков: ${state.error}');
+          SnackbarService.showError(context, 'Ошибка загрузки участков: ${state.error}');
+        }
+      },
+      child: BlocBuilder<AddPatientBloc, AddPatientState>(
+        builder: (context, state) {
+          return Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              backgroundColor: Color(0xFF1C6BA4),
+              title: Text('Добавить пациента',style: GoogleFonts.montserrat(fontSize: 17,
+              color: ColorStyles.whiteColor,fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            body: state is AddPatientLoading 
+              ? Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -149,8 +182,8 @@ Color _getBMIColor(double bmi) {
                 ],
               ),
               const SizedBox(height: 4),
-                    DropdownButtonFormField<String>(
-                      value: selectedUchastok,
+                    DropdownButtonFormField<SectorModel>(
+                      value: selectedSector,
                       hint: Text('Выберите участок'),
                       decoration: InputDecoration(
                         filled: true,
@@ -161,15 +194,15 @@ Color _getBMIColor(double bmi) {
                         ),
                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
-                      items: uchastokList.map((String uchastok) {
-                        return DropdownMenuItem<String>(
-                          value: uchastok,
-                          child: Text(uchastok),
+                      items: sectors.map((SectorModel sector) {
+                        return DropdownMenuItem<SectorModel>(
+                          value: sector,
+                          child: Text(sector.address),
                         );
                       }).toList(),
-                      onChanged: (String? newValue) {
+                      onChanged: (SectorModel? newValue) {
                         setState(() {
-                          selectedUchastok = newValue;
+                          selectedSector = newValue;
                         });
                       },
                     ),
@@ -824,17 +857,57 @@ Color _getBMIColor(double bmi) {
       ),
     ),
     onPressed: () {
-      print('Кнопка нажата!');
+      final patient = PatientModel(
+        uchastok: selectedSector?.address,
+        surname: _surnameController.text,
+        name: _nameController.text,
+        middleName: _middleNameController.text.isEmpty ? null : _middleNameController.text,
+        iin: _iinController.text,
+        birthDate: _birthController.text,
+        gender: selectedGender ?? '',
+        address: _addressController.text,
+        email: _mailController.text.isEmpty ? null : _mailController.text,
+        contactPhone: _contactController.text,
+        familyContactPhone: _familyContactController.text.isEmpty ? null : _familyContactController.text,
+        height: _heightController.text.isEmpty ? null : double.tryParse(_heightController.text),
+        weight: _weightController.text.isEmpty ? null : double.tryParse(_weightController.text),
+        bmi: bmi,
+        hasHypertension: hasHypertension,
+        hasHeartFailure: hasHeartFailure,
+        hasDiabetes: hasDiabetes,
+        arterialPressure: _arterialdavlenie.text.isEmpty ? null : _arterialdavlenie.text,
+        heartbeat: _heartbeat.text.isEmpty ? null : _heartbeat.text,
+        sugarLevel: _levelsugar.text.isEmpty ? null : _levelsugar.text,
+        lastBPDate: _lastBPDate.text.isEmpty ? null : _lastBPDate.text,
+        lastSelfManagementDate: _lastSelfManagementDate.text.isEmpty ? null : _lastSelfManagementDate.text,
+        smokingStatus: smokingStatus,
+        confidenceLevel: _confidenceLevel.text.isEmpty ? null : _confidenceLevel.text,
+        lastConfidenceDate: _lastConfidenceDate.text.isEmpty ? null : _lastConfidenceDate.text,
+        hba1cValue: _hba1cValue.text.isEmpty ? null : _hba1cValue.text,
+        hba1cDate: _hba1cDate.text.isEmpty ? null : _hba1cDate.text,
+        ldlValue: _ldlValue.text.isEmpty ? null : _ldlValue.text,
+        ldlDate: _ldlDate.text.isEmpty ? null : _ldlDate.text,
+        hasCVD: hasCVD,
+        footExamDate: _footExamDate.text.isEmpty ? null : _footExamDate.text,
+        hasRetinopathy: hasRetinopathy,
+        retinopathyDate: _retinopathyDate.text.isEmpty ? null : _retinopathyDate.text,
+        takesStatin: takesStatin,
+        sakDate: _sakDate.text.isEmpty ? null : _sakDate.text,
+      );
+      
+      // Отправить событие в bloc
+      context.read<AddPatientBloc>().add(AddPatientButtonPressed(patient));
     },
     child: const Text('Сохранить'),
   ),
 )
 
-
-        
             ],
           ),
         ),
+      ),
+          );
+        },
       ),
     );
   }

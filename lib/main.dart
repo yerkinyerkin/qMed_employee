@@ -5,6 +5,7 @@ import 'package:qmed_employee/core/bottomnavbar/bottom_navbar.dart';
 import 'package:qmed_employee/core/const/color_styles.dart';
 import 'package:qmed_employee/core/get_it/injection_container.dart';
 import 'package:qmed_employee/core/hive/hive_init.dart';
+import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_bloc.dart';
 import 'package:qmed_employee/features/home/logic/bloc/home_bloc.dart';
 import 'package:qmed_employee/features/login/logic/bloc/login_bloc.dart';
 import 'package:qmed_employee/features/login/screens/login_screen.dart';
@@ -36,7 +37,12 @@ class MyApp extends StatelessWidget {
         BlocProvider<HomeBloc>(
           create: (_) => sl(),
         ),
+        BlocProvider<AddPatientBloc>(
+          create: (_) => sl(),
+        ),
       ],
+
+      
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',

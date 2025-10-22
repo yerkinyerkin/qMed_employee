@@ -63,6 +63,30 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     super.initState();
     context.read<AddPatientBloc>().add(LoadSectors());
   }
+  // Конвертация даты из DD.MM.YYYY в YYYY-MM-DD
+  String _convertDateFormat(String date) {
+    if (date.isEmpty) return '';
+    try {
+      final parts = date.split('.');
+      if (parts.length == 3) {
+        final day = parts[0].padLeft(2, '0');
+        final month = parts[1].padLeft(2, '0');
+        final year = parts[2];
+        return '$year-$month-$day';
+      }
+    } catch (e) {
+      print('Ошибка конвертации даты: $e');
+    }
+    return date; // Возвращаем исходную дату, если конвертация не удалась
+  }
+
+  // Конвертация даты в ISO формат с временем
+  String _convertToISODate(String date) {
+    if (date.isEmpty) return '';
+    final convertedDate = _convertDateFormat(date);
+    return '${convertedDate}T00:00:00Z';
+  }
+
   @override
   void dispose() {
     _uchastokController.dispose();
@@ -858,41 +882,53 @@ Color _getBMIColor(double bmi) {
     ),
     onPressed: () {
       final patient = PatientModel(
-        uchastok: selectedSector?.address,
-        surname: _surnameController.text,
-        name: _nameController.text,
+        sectorId: selectedSector?.sectorId,
+        lastName: _surnameController.text,
+        firstName: _nameController.text,
         middleName: _middleNameController.text.isEmpty ? null : _middleNameController.text,
         iin: _iinController.text,
-        birthDate: _birthController.text,
-        gender: selectedGender ?? '',
+        birthDate: _convertDateFormat(_birthController.text),
+        heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
+        weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
+        gender: selectedGender == 'Мужской' ? 'male' : 'female',
         address: _addressController.text,
+        phoneNumber: _contactController.text,
         email: _mailController.text.isEmpty ? null : _mailController.text,
-        contactPhone: _contactController.text,
         familyContactPhone: _familyContactController.text.isEmpty ? null : _familyContactController.text,
-        height: _heightController.text.isEmpty ? null : double.tryParse(_heightController.text),
-        weight: _weightController.text.isEmpty ? null : double.tryParse(_weightController.text),
-        bmi: bmi,
-        hasHypertension: hasHypertension,
-        hasHeartFailure: hasHeartFailure,
-        hasDiabetes: hasDiabetes,
-        arterialPressure: _arterialdavlenie.text.isEmpty ? null : _arterialdavlenie.text,
-        heartbeat: _heartbeat.text.isEmpty ? null : _heartbeat.text,
-        sugarLevel: _levelsugar.text.isEmpty ? null : _levelsugar.text,
-        lastBPDate: _lastBPDate.text.isEmpty ? null : _lastBPDate.text,
-        lastSelfManagementDate: _lastSelfManagementDate.text.isEmpty ? null : _lastSelfManagementDate.text,
-        smokingStatus: smokingStatus,
-        confidenceLevel: _confidenceLevel.text.isEmpty ? null : _confidenceLevel.text,
-        lastConfidenceDate: _lastConfidenceDate.text.isEmpty ? null : _lastConfidenceDate.text,
+        diseases: [], // Пока пустой массив, можно добавить логику выбора диагнозов
+        bloodPressure: _arterialdavlenie.text.isEmpty ? null : _arterialdavlenie.text,
+        sugarLevel: _levelsugar.text.isEmpty ? null : double.tryParse(_levelsugar.text),
+        heartRate: _heartbeat.text.isEmpty ? null : int.tryParse(_heartbeat.text),
         hba1cValue: _hba1cValue.text.isEmpty ? null : _hba1cValue.text,
-        hba1cDate: _hba1cDate.text.isEmpty ? null : _hba1cDate.text,
+        hba1cDate: _hba1cDate.text.isEmpty ? null : _convertDateFormat(_hba1cDate.text),
         ldlValue: _ldlValue.text.isEmpty ? null : _ldlValue.text,
-        ldlDate: _ldlDate.text.isEmpty ? null : _ldlDate.text,
-        hasCVD: hasCVD,
-        footExamDate: _footExamDate.text.isEmpty ? null : _footExamDate.text,
-        hasRetinopathy: hasRetinopathy,
-        retinopathyDate: _retinopathyDate.text.isEmpty ? null : _retinopathyDate.text,
-        takesStatin: takesStatin,
-        sakDate: _sakDate.text.isEmpty ? null : _sakDate.text,
+        ldlDate: _ldlDate.text.isEmpty ? null : _convertDateFormat(_ldlDate.text),
+        footExamDate: _footExamDate.text.isEmpty ? null : _convertDateFormat(_footExamDate.text),
+        retinopathyDate: _retinopathyDate.text.isEmpty ? null : _convertDateFormat(_retinopathyDate.text),
+        sakDate: _sakDate.text.isEmpty ? null : _convertDateFormat(_sakDate.text),
+        visitData: VisitData(
+          visitHypertension: VisitHypertension(
+            ldl: _ldlValue.text.isEmpty ? null : int.tryParse(_ldlValue.text),
+            ldlDate: _ldlDate.text.isEmpty ? null : _convertToISODate(_ldlDate.text),
+            cholesterol: null, // Пока нет поля
+            cholesterolDate: null, // Пока нет поля
+            riskLevel: null, // Пока нет поля
+            visitGeneral: VisitGeneral(
+              bmi: bmi,
+              bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
+              diastolicBp: _arterialdavlenie.text.isEmpty ? null : int.tryParse(_arterialdavlenie.text.split('/')[1]),
+              heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
+              selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
+              selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
+              selfManagementGoalDate: _lastSelfManagementDate.text.isEmpty ? null : _convertToISODate(_lastSelfManagementDate.text),
+              smokingCessationCounselingDate: null, // Пока нет поля
+              smokingStatus: false, // Пока нет поля
+              smokingStatusAssessmentDate: null, // Пока нет поля
+              systolicBp: _arterialdavlenie.text.isEmpty ? null : int.tryParse(_arterialdavlenie.text.split('/')[0]),
+              weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
+            ),
+          ),
+        ),
       );
       
       // Отправить событие в bloc

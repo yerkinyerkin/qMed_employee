@@ -15,7 +15,7 @@ class AddPatientDataSourceImpl implements AddPatientDataSource {
   Future<Response> addPatient(PatientModel patient) async {
     try {
       final response = await dio.post(
-        '/patients',
+        '/patient',
         data: patient.toJson(),
         options: Options(
           headers: {

@@ -1,160 +1,241 @@
 class PatientModel {
-  final String? id;
-  final String? uchastok;
-  final String surname;
-  final String name;
+  final int? sectorId;
+  final String? lastName;
+  final String? firstName;
   final String? middleName;
-  final String iin;
-  final String birthDate;
-  final String gender;
-  final String address;
+  final String? iin;
+  final String? birthDate;
+  final int? heightCm;
+  final int? weightKg;
+  final String? gender;
+  final String? address;
+  final String? phoneNumber;
   final String? email;
-  final String contactPhone;
   final String? familyContactPhone;
-  final double? height;
-  final double? weight;
-  final double? bmi;
-  final bool hasHypertension;
-  final bool hasHeartFailure;
-  final bool hasDiabetes;
-  final String? arterialPressure;
-  final String? heartbeat;
-  final String? sugarLevel;
-  final String? lastBPDate;
-  final String? lastSelfManagementDate;
-  final String? smokingStatus;
-  final String? confidenceLevel;
-  final String? lastConfidenceDate;
+  final List<int>? diseases;
+  final String? bloodPressure;
+  final double? sugarLevel;
+  final int? heartRate;
   final String? hba1cValue;
   final String? hba1cDate;
   final String? ldlValue;
   final String? ldlDate;
-  final bool? hasCVD;
   final String? footExamDate;
-  final bool? hasRetinopathy;
   final String? retinopathyDate;
-  final bool? takesStatin;
   final String? sakDate;
+  final VisitData? visitData;
 
   const PatientModel({
-    this.id,
-    this.uchastok,
-    required this.surname,
-    required this.name,
+    this.sectorId,
+    this.lastName,
+    this.firstName,
     this.middleName,
-    required this.iin,
-    required this.birthDate,
-    required this.gender,
-    required this.address,
+    this.iin,
+    this.birthDate,
+    this.heightCm,
+    this.weightKg,
+    this.gender,
+    this.address,
+    this.phoneNumber,
     this.email,
-    required this.contactPhone,
     this.familyContactPhone,
-    this.height,
-    this.weight,
-    this.bmi,
-    required this.hasHypertension,
-    required this.hasHeartFailure,
-    required this.hasDiabetes,
-    this.arterialPressure,
-    this.heartbeat,
+    this.diseases,
+    this.bloodPressure,
     this.sugarLevel,
-    this.lastBPDate,
-    this.lastSelfManagementDate,
-    this.smokingStatus,
-    this.confidenceLevel,
-    this.lastConfidenceDate,
+    this.heartRate,
     this.hba1cValue,
     this.hba1cDate,
     this.ldlValue,
     this.ldlDate,
-    this.hasCVD,
     this.footExamDate,
-    this.hasRetinopathy,
     this.retinopathyDate,
-    this.takesStatin,
     this.sakDate,
+    this.visitData,
   });
 
   factory PatientModel.fromJson(Map<String, dynamic> json) {
     return PatientModel(
-      id: json['id'],
-      uchastok: json['uchastok'],
-      surname: json['surname'] ?? '',
-      name: json['name'] ?? '',
-      middleName: json['middleName'],
-      iin: json['iin'] ?? '',
-      birthDate: json['birthDate'] ?? '',
-      gender: json['gender'] ?? '',
-      address: json['address'] ?? '',
+      sectorId: json['sector_id'],
+      lastName: json['last_name'],
+      firstName: json['first_name'],
+      middleName: json['middle_name'],
+      iin: json['iin'],
+      birthDate: json['birth_date'],
+      heightCm: json['height_cm'],
+      weightKg: json['weight_kg'],
+      gender: json['gender'],
+      address: json['address'],
+      phoneNumber: json['phone_number'],
       email: json['email'],
-      contactPhone: json['contactPhone'] ?? '',
-      familyContactPhone: json['familyContactPhone'],
-      height: (json['height'] as num?)?.toDouble(),
-      weight: (json['weight'] as num?)?.toDouble(),
-      bmi: (json['bmi'] as num?)?.toDouble(),
-      hasHypertension: json['hasHypertension'] ?? false,
-      hasHeartFailure: json['hasHeartFailure'] ?? false,
-      hasDiabetes: json['hasDiabetes'] ?? false,
-      arterialPressure: json['arterialPressure'],
-      heartbeat: json['heartbeat'],
-      sugarLevel: json['sugarLevel'],
-      lastBPDate: json['lastBPDate'],
-      lastSelfManagementDate: json['lastSelfManagementDate'],
-      smokingStatus: json['smokingStatus'],
-      confidenceLevel: json['confidenceLevel'],
-      lastConfidenceDate: json['lastConfidenceDate'],
-      hba1cValue: json['hba1cValue'],
-      hba1cDate: json['hba1cDate'],
-      ldlValue: json['ldlValue'],
-      ldlDate: json['ldlDate'],
-      hasCVD: json['hasCVD'],
-      footExamDate: json['footExamDate'],
-      hasRetinopathy: json['hasRetinopathy'],
-      retinopathyDate: json['retinopathyDate'],
-      takesStatin: json['takesStatin'],
-      sakDate: json['sakDate'],
+      familyContactPhone: json['family_contact_phone'],
+      diseases: json['diseases'] != null ? List<int>.from(json['diseases']) : null,
+      bloodPressure: json['blood_pressure'],
+      sugarLevel: (json['sugar_level'] as num?)?.toDouble(),
+      heartRate: json['heart_rate'],
+      hba1cValue: json['hba1c_value'],
+      hba1cDate: json['hba1c_date'],
+      ldlValue: json['ldl_value'],
+      ldlDate: json['ldl_date'],
+      footExamDate: json['foot_exam_date'],
+      retinopathyDate: json['retinopathy_date'],
+      sakDate: json['sak_date'],
+      visitData: json['visit_data'] != null ? VisitData.fromJson(json['visit_data']) : null,
     );
   }
 
-  // ✅ Преобразование модели в JSON (для сохранения в Firestore)
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'uchastok': uchastok,
-      'surname': surname,
-      'name': name,
-      'middleName': middleName,
+      'sector_id': sectorId,
+      'last_name': lastName,
+      'first_name': firstName,
+      'middle_name': middleName,
       'iin': iin,
-      'birthDate': birthDate,
+      'birth_date': birthDate,
+      'height_cm': heightCm,
+      'weight_kg': weightKg,
       'gender': gender,
       'address': address,
+      'phone_number': phoneNumber,
       'email': email,
-      'contactPhone': contactPhone,
-      'familyContactPhone': familyContactPhone,
-      'height': height,
-      'weight': weight,
+      'family_contact_phone': familyContactPhone,
+      'diseases': diseases,
+      'blood_pressure': bloodPressure,
+      'sugar_level': sugarLevel,
+      'heart_rate': heartRate,
+      'hba1c_value': hba1cValue,
+      'hba1c_date': hba1cDate,
+      'ldl_value': ldlValue,
+      'ldl_date': ldlDate,
+      'foot_exam_date': footExamDate,
+      'retinopathy_date': retinopathyDate,
+      'sak_date': sakDate,
+      'visit_data': visitData?.toJson(),
+    };
+  }
+}
+
+class VisitData {
+  final VisitHypertension? visitHypertension;
+
+  VisitData({this.visitHypertension});
+
+  factory VisitData.fromJson(Map<String, dynamic> json) {
+    return VisitData(
+      visitHypertension: json['visit_hypertension'] != null 
+          ? VisitHypertension.fromJson(json['visit_hypertension']) 
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'visit_hypertension': visitHypertension?.toJson(),
+    };
+  }
+}
+
+class VisitHypertension {
+  final int? ldl;
+  final String? ldlDate;
+  final int? cholesterol;
+  final String? cholesterolDate;
+  final int? riskLevel;
+  final VisitGeneral? visitGeneral;
+
+  VisitHypertension({
+    this.ldl,
+    this.ldlDate,
+    this.cholesterol,
+    this.cholesterolDate,
+    this.riskLevel,
+    this.visitGeneral,
+  });
+
+  factory VisitHypertension.fromJson(Map<String, dynamic> json) {
+    return VisitHypertension(
+      ldl: json['ldl'],
+      ldlDate: json['ldl_date'],
+      cholesterol: json['cholesterol'],
+      cholesterolDate: json['cholesterol_date'],
+      riskLevel: json['risk_level'],
+      visitGeneral: json['visit_general'] != null 
+          ? VisitGeneral.fromJson(json['visit_general']) 
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ldl': ldl,
+      'ldl_date': ldlDate,
+      'cholesterol': cholesterol,
+      'cholesterol_date': cholesterolDate,
+      'risk_level': riskLevel,
+      'visit_general': visitGeneral?.toJson(),
+    };
+  }
+}
+
+class VisitGeneral {
+  final double? bmi;
+  final String? bpMeasurementDate;
+  final int? diastolicBp;
+  final int? heightCm;
+  final String? selfConfidenceAssessmentDate;
+  final int? selfConfidenceLevel;
+  final String? selfManagementGoalDate;
+  final String? smokingCessationCounselingDate;
+  final bool? smokingStatus;
+  final String? smokingStatusAssessmentDate;
+  final int? systolicBp;
+  final int? weightKg;
+
+  VisitGeneral({
+    this.bmi,
+    this.bpMeasurementDate,
+    this.diastolicBp,
+    this.heightCm,
+    this.selfConfidenceAssessmentDate,
+    this.selfConfidenceLevel,
+    this.selfManagementGoalDate,
+    this.smokingCessationCounselingDate,
+    this.smokingStatus,
+    this.smokingStatusAssessmentDate,
+    this.systolicBp,
+    this.weightKg,
+  });
+
+  factory VisitGeneral.fromJson(Map<String, dynamic> json) {
+    return VisitGeneral(
+      bmi: (json['bmi'] as num?)?.toDouble(),
+      bpMeasurementDate: json['bp_measurement_date'],
+      diastolicBp: json['diastolic_bp'],
+      heightCm: json['height_cm'],
+      selfConfidenceAssessmentDate: json['self_confidence_assessment_date'],
+      selfConfidenceLevel: json['self_confidence_level'],
+      selfManagementGoalDate: json['self_management_goal_date'],
+      smokingCessationCounselingDate: json['smoking_cessation_counseling_date'],
+      smokingStatus: json['smoking_status'],
+      smokingStatusAssessmentDate: json['smoking_status_assessment_date'],
+      systolicBp: json['systolic_bp'],
+      weightKg: json['weight_kg'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
       'bmi': bmi,
-      'hasHypertension': hasHypertension,
-      'hasHeartFailure': hasHeartFailure,
-      'hasDiabetes': hasDiabetes,
-      'arterialPressure': arterialPressure,
-      'heartbeat': heartbeat,
-      'sugarLevel': sugarLevel,
-      'lastBPDate': lastBPDate,
-      'lastSelfManagementDate': lastSelfManagementDate,
-      'smokingStatus': smokingStatus,
-      'confidenceLevel': confidenceLevel,
-      'lastConfidenceDate': lastConfidenceDate,
-      'hba1cValue': hba1cValue,
-      'hba1cDate': hba1cDate,
-      'ldlValue': ldlValue,
-      'ldlDate': ldlDate,
-      'hasCVD': hasCVD,
-      'footExamDate': footExamDate,
-      'hasRetinopathy': hasRetinopathy,
-      'retinopathyDate': retinopathyDate,
-      'takesStatin': takesStatin,
-      'sakDate': sakDate,
+      'bp_measurement_date': bpMeasurementDate,
+      'diastolic_bp': diastolicBp,
+      'height_cm': heightCm,
+      'self_confidence_assessment_date': selfConfidenceAssessmentDate,
+      'self_confidence_level': selfConfidenceLevel,
+      'self_management_goal_date': selfManagementGoalDate,
+      'smoking_cessation_counseling_date': smokingCessationCounselingDate,
+      'smoking_status': smokingStatus,
+      'smoking_status_assessment_date': smokingStatusAssessmentDate,
+      'systolic_bp': systolicBp,
+      'weight_kg': weightKg,
     };
   }
 }

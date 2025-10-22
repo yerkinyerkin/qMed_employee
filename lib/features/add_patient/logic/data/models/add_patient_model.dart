@@ -135,9 +135,9 @@ class VisitData {
 }
 
 class VisitHypertension {
-  final int? ldl;
+  final double? ldl;
   final String? ldlDate;
-  final int? cholesterol;
+  final double? cholesterol;
   final String? cholesterolDate;
   final int? riskLevel;
   final VisitGeneral? visitGeneral;
@@ -153,9 +153,9 @@ class VisitHypertension {
 
   factory VisitHypertension.fromJson(Map<String, dynamic> json) {
     return VisitHypertension(
-      ldl: json['ldl'],
+      ldl: (json['ldl'] as num?)?.toDouble(),
       ldlDate: json['ldl_date'],
-      cholesterol: json['cholesterol'],
+      cholesterol: (json['cholesterol'] as num?)?.toDouble(),
       cholesterolDate: json['cholesterol_date'],
       riskLevel: json['risk_level'],
       visitGeneral: json['visit_general'] != null 

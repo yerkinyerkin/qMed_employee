@@ -34,7 +34,6 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   final _noezologyaController = TextEditingController();
   final _genderController = TextEditingController();
   final _addressController = TextEditingController();
-  final _mailController = TextEditingController();
   final _contactController = TextEditingController();
   final _arterialdavlenie = TextEditingController();
   final _heartbeat = TextEditingController();
@@ -182,7 +181,6 @@ Color _getBMIColor(double bmi) {
       _heightController.clear();
       _weightController.clear();
       _addressController.clear();
-      _mailController.clear();
       _contactController.clear();
       _arterialdavlenie.clear();
       _heartbeat.clear();
@@ -1040,15 +1038,6 @@ Color _getBMIColor(double bmi) {
                     ),
                     const SizedBox(height: 4),
                     AddTextField(controller: _addressController,hintText: 'Введите адрес',),
-                    const SizedBox(height: 8),
-                    
-                    Row(
-                      children: [
-                        Text('Почта',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    AddTextField(controller: _mailController,hintText: 'Почта',),
                     const SizedBox(height: 8),
                     
                     Row(

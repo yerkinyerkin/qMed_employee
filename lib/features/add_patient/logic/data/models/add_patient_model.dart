@@ -10,8 +10,6 @@ class PatientModel {
   final String? gender;
   final String? address;
   final String? phoneNumber;
-  final String? email;
-  final String? familyContactPhone;
   final List<int>? diseases;
   final String? bloodPressure;
   final double? sugarLevel;
@@ -37,8 +35,6 @@ class PatientModel {
     this.gender,
     this.address,
     this.phoneNumber,
-    this.email,
-    this.familyContactPhone,
     this.diseases,
     this.bloodPressure,
     this.sugarLevel,
@@ -66,8 +62,6 @@ class PatientModel {
       gender: json['gender'],
       address: json['address'],
       phoneNumber: json['phone_number'],
-      email: json['email'],
-      familyContactPhone: json['family_contact_phone'],
       diseases: json['diseases'] != null ? List<int>.from(json['diseases']) : null,
       bloodPressure: json['blood_pressure'],
       sugarLevel: (json['sugar_level'] as num?)?.toDouble(),

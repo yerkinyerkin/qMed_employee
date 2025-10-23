@@ -96,19 +96,10 @@ class PatientModel {
       'gender': gender,
       'address': address,
       'phone_number': phoneNumber,
-      'email': email,
-      'family_contact_phone': familyContactPhone,
       'diseases': diseases,
       'blood_pressure': bloodPressure,
       'sugar_level': sugarLevel,
       'heart_rate': heartRate,
-      'hba1c_value': hba1cValue,
-      'hba1c_date': hba1cDate,
-      'ldl_value': ldlValue,
-      'ldl_date': ldlDate,
-      'foot_exam_date': footExamDate,
-      'retinopathy_date': retinopathyDate,
-      'sak_date': sakDate,
       'visit_data': visitData?.toJson(),
     };
   }
@@ -116,20 +107,34 @@ class PatientModel {
 
 class VisitData {
   final VisitHypertension? visitHypertension;
+  final VisitHeartFailure? visitHeartFailure;
+  final VisitDiabetes? visitDiabetes;
 
-  VisitData({this.visitHypertension});
+  VisitData({
+    this.visitHypertension,
+    this.visitHeartFailure,
+    this.visitDiabetes,
+  });
 
   factory VisitData.fromJson(Map<String, dynamic> json) {
     return VisitData(
       visitHypertension: json['visit_hypertension'] != null 
           ? VisitHypertension.fromJson(json['visit_hypertension']) 
           : null,
+      visitHeartFailure: json['visit_heart_failure'] != null 
+          ? VisitHeartFailure.fromJson(json['visit_heart_failure']) 
+          : null,
+      visitDiabetes: json['visit_diabetes'] != null 
+          ? VisitDiabetes.fromJson(json['visit_diabetes']) 
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'visit_hypertension': visitHypertension?.toJson(),
+      if (visitHypertension != null) 'visit_hypertension': visitHypertension?.toJson(),
+      if (visitHeartFailure != null) 'visit_heart_failure': visitHeartFailure?.toJson(),
+      if (visitDiabetes != null) 'visit_diabetes': visitDiabetes?.toJson(),
     };
   }
 }
@@ -171,6 +176,72 @@ class VisitHypertension {
       'cholesterol': cholesterol,
       'cholesterol_date': cholesterolDate,
       'risk_level': riskLevel,
+      'visit_general': visitGeneral?.toJson(),
+    };
+  }
+}
+
+class VisitHeartFailure {
+  final bool? aceInhibitors;
+  final bool? aldosteroneAntagonists;
+  final bool? betaBlockers;
+  final String? echoDate;
+  final String? fluVaccinationDate;
+  final int? gfr;
+  final bool? hadEcho;
+  final String? hospitalizationDate;
+  final bool? leftVentricleDysfunction;
+  final int? lvef;
+  final int? nyhaClass;
+  final VisitGeneral? visitGeneral;
+
+  VisitHeartFailure({
+    this.aceInhibitors,
+    this.aldosteroneAntagonists,
+    this.betaBlockers,
+    this.echoDate,
+    this.fluVaccinationDate,
+    this.gfr,
+    this.hadEcho,
+    this.hospitalizationDate,
+    this.leftVentricleDysfunction,
+    this.lvef,
+    this.nyhaClass,
+    this.visitGeneral,
+  });
+
+  factory VisitHeartFailure.fromJson(Map<String, dynamic> json) {
+    return VisitHeartFailure(
+      aceInhibitors: json['ace_inhibitors'],
+      aldosteroneAntagonists: json['aldosterone_antagonists'],
+      betaBlockers: json['beta_blockers'],
+      echoDate: json['echo_date'],
+      fluVaccinationDate: json['flu_vaccination_date'],
+      gfr: json['gfr'],
+      hadEcho: json['had_echo'],
+      hospitalizationDate: json['hospitalization_date'],
+      leftVentricleDysfunction: json['left_ventricle_dysfunction'],
+      lvef: json['lvef'],
+      nyhaClass: json['nyha_class'],
+      visitGeneral: json['visit_general'] != null 
+          ? VisitGeneral.fromJson(json['visit_general']) 
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ace_inhibitors': aceInhibitors,
+      'aldosterone_antagonists': aldosteroneAntagonists,
+      'beta_blockers': betaBlockers,
+      'echo_date': echoDate,
+      'flu_vaccination_date': fluVaccinationDate,
+      'gfr': gfr,
+      'had_echo': hadEcho,
+      'hospitalization_date': hospitalizationDate,
+      'left_ventricle_dysfunction': leftVentricleDysfunction,
+      'lvef': lvef,
+      'nyha_class': nyhaClass,
       'visit_general': visitGeneral?.toJson(),
     };
   }
@@ -236,6 +307,68 @@ class VisitGeneral {
       'smoking_status_assessment_date': smokingStatusAssessmentDate,
       'systolic_bp': systolicBp,
       'weight_kg': weightKg,
+    };
+  }
+}
+
+class VisitDiabetes {
+  final String? eyeExamDate;
+  final String? footExamDate;
+  final bool? hasCvd;
+  final bool? hasRetinopathy;
+  final double? hda1c;
+  final String? hda1cDate;
+  final double? ldl;
+  final String? ldlDate;
+  final bool? takesStatin;
+  final String? uacDate;
+  final VisitGeneral? visitGeneral;
+
+  VisitDiabetes({
+    this.eyeExamDate,
+    this.footExamDate,
+    this.hasCvd,
+    this.hasRetinopathy,
+    this.hda1c,
+    this.hda1cDate,
+    this.ldl,
+    this.ldlDate,
+    this.takesStatin,
+    this.uacDate,
+    this.visitGeneral,
+  });
+
+  factory VisitDiabetes.fromJson(Map<String, dynamic> json) {
+    return VisitDiabetes(
+      eyeExamDate: json['eye_exam_date'],
+      footExamDate: json['foot_exam_date'],
+      hasCvd: json['has_cvd'],
+      hasRetinopathy: json['has_retinopathy'],
+      hda1c: (json['hda1c'] as num?)?.toDouble(),
+      hda1cDate: json['hda1c_date'],
+      ldl: (json['ldl'] as num?)?.toDouble(),
+      ldlDate: json['ldl_date'],
+      takesStatin: json['takes_statin'],
+      uacDate: json['uac_date'],
+      visitGeneral: json['visit_general'] != null 
+          ? VisitGeneral.fromJson(json['visit_general']) 
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'eye_exam_date': eyeExamDate,
+      'foot_exam_date': footExamDate,
+      'has_cvd': hasCvd,
+      'has_retinopathy': hasRetinopathy,
+      'hda1c': hda1c,
+      'hda1c_date': hda1cDate,
+      'ldl': ldl,
+      'ldl_date': ldlDate,
+      'takes_statin': takesStatin,
+      'uac_date': uacDate,
+      'visit_general': visitGeneral?.toJson(),
     };
   }
 }

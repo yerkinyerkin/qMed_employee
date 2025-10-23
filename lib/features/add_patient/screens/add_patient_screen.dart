@@ -171,6 +171,63 @@ Color _getBMIColor(double bmi) {
   return Colors.red;                       // Ожирение
   }
 
+  void _clearForm() {
+    setState(() {
+      // Очищаем все контроллеры
+      _surnameController.clear();
+      _nameController.clear();
+      _middleNameController.clear();
+      _iinController.clear();
+      _birthController.clear();
+      _heightController.clear();
+      _weightController.clear();
+      _addressController.clear();
+      _mailController.clear();
+      _contactController.clear();
+      _arterialdavlenie.clear();
+      _heartbeat.clear();
+      _levelsugar.clear();
+      _lastBPDate.clear();
+      _lastSelfManagementDate.clear();
+      _confidenceLevel.clear();
+      _lastConfidenceDate.clear();
+      _hba1cValue.clear();
+      _hba1cDate.clear();
+      _ldlValue.clear();
+      _ldlDate.clear();
+      _footExamDate.clear();
+      _retinopathyDate.clear();
+      _sakDate.clear();
+      _smokingStatusAssessmentDate.clear();
+      _smokingCessationCounselingDate.clear();
+      _cholesterolValue.clear();
+      _cholesterolDate.clear();
+      _riskLevel.clear();
+      _efValue.clear();
+      _echoDate.clear();
+      _hospitalizationDate.clear();
+      _fluVaccinationDate.clear();
+      _egfrValue.clear();
+      
+      // Сбрасываем выбранные значения
+      selectedGender = null;
+      selectedDisease = null;
+      selectedSector = null;
+      smokingStatus = null;
+      hypertensionRiskLevel = null;
+      nyhaClass = null;
+      takesBetaBlockers = null;
+      takesACEInhibitor = null;
+      takesAldosteroneAntagonists = null;
+      hasEchoECGStudy = null;
+      hasLeftVentricularDysfunction = null;
+      hasCVD = null;
+      hasRetinopathy = null;
+      takesStatin = null;
+      bmi = null;
+    });
+  }
+
   Widget _buildHypertensionSection() {
     return Container(
       padding: EdgeInsets.all(16),
@@ -802,7 +859,8 @@ Color _getBMIColor(double bmi) {
       listener: (context, state) {
         if (state is AddPatientSuccess) {
           SnackbarService.showSuccess(context, 'Пациент успешно добавлен!');
-          Navigator.pop(context);
+          // Очищаем форму после успешного добавления
+          _clearForm();
         }
         if (state is AddPatientFailure) {
           SnackbarService.showError(context, 'Ошибка: ${state.error}');
@@ -1385,7 +1443,7 @@ Color _getBMIColor(double bmi) {
         sugarLevel: _levelsugar.text.isEmpty ? null : double.tryParse(_levelsugar.text),
         heartRate: _heartbeat.text.isEmpty ? null : int.tryParse(_heartbeat.text),
         visitData: VisitData(
-          visitHypertension: VisitHypertension(
+          visitHypertension: selectedDisease == 'Артериальная гипертензия' ? VisitHypertension(
             ldl: _ldlValue.text.isEmpty ? null : double.tryParse(_ldlValue.text),
             ldlDate: _ldlDate.text.isEmpty ? null : _convertToISODate(_ldlDate.text),
             cholesterol: _cholesterolValue.text.isEmpty ? null : double.tryParse(_cholesterolValue.text),
@@ -1394,7 +1452,7 @@ Color _getBMIColor(double bmi) {
             visitGeneral: VisitGeneral(
               bmi: bmi,
               bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
-              diastolicBp: _arterialdavlenie.text.isEmpty ? null : int.tryParse(_arterialdavlenie.text.split('/')[1]),
+              diastolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[1]) : null),
               heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
               selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
               selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
@@ -1402,10 +1460,63 @@ Color _getBMIColor(double bmi) {
               smokingCessationCounselingDate: _smokingCessationCounselingDate.text.isEmpty ? null : _convertToISODate(_smokingCessationCounselingDate.text),
               smokingStatus: smokingStatus == 'Да',
               smokingStatusAssessmentDate: _smokingStatusAssessmentDate.text.isEmpty ? null : _convertToISODate(_smokingStatusAssessmentDate.text),
-              systolicBp: _arterialdavlenie.text.isEmpty ? null : int.tryParse(_arterialdavlenie.text.split('/')[0]),
+              systolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[0]) : null),
               weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
             ),
-          ),
+          ) : null,
+          visitHeartFailure: selectedDisease == 'Хроническая сердечная недостаточность' ? VisitHeartFailure(
+            aceInhibitors: takesACEInhibitor,
+            aldosteroneAntagonists: takesAldosteroneAntagonists,
+            betaBlockers: takesBetaBlockers,
+            echoDate: _echoDate.text.isEmpty ? null : _convertToISODate(_echoDate.text),
+            fluVaccinationDate: _fluVaccinationDate.text.isEmpty ? null : _convertToISODate(_fluVaccinationDate.text),
+            gfr: _egfrValue.text.isEmpty ? null : int.tryParse(_egfrValue.text),
+            hadEcho: hasEchoECGStudy,
+            hospitalizationDate: _hospitalizationDate.text.isEmpty ? null : _convertToISODate(_hospitalizationDate.text),
+            leftVentricleDysfunction: hasLeftVentricularDysfunction,
+            lvef: _efValue.text.isEmpty ? null : int.tryParse(_efValue.text),
+            nyhaClass: nyhaClass == 'Класс I' ? 1 : nyhaClass == 'Класс II' ? 2 : nyhaClass == 'Класс III' ? 3 : nyhaClass == 'Класс IV' ? 4 : null,
+            visitGeneral: VisitGeneral(
+              bmi: bmi,
+              bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
+              diastolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[1]) : null),
+              heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
+              selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
+              selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
+              selfManagementGoalDate: _lastSelfManagementDate.text.isEmpty ? null : _convertToISODate(_lastSelfManagementDate.text),
+              smokingCessationCounselingDate: _smokingCessationCounselingDate.text.isEmpty ? null : _convertToISODate(_smokingCessationCounselingDate.text),
+              smokingStatus: smokingStatus == 'Да',
+              smokingStatusAssessmentDate: _smokingStatusAssessmentDate.text.isEmpty ? null : _convertToISODate(_smokingStatusAssessmentDate.text),
+              systolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[0]) : null),
+              weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
+            ),
+          ) : null,
+          visitDiabetes: selectedDisease == 'Сахарный диабет' ? VisitDiabetes(
+            eyeExamDate: _retinopathyDate.text.isEmpty ? null : _convertToISODate(_retinopathyDate.text),
+            footExamDate: _footExamDate.text.isEmpty ? null : _convertToISODate(_footExamDate.text),
+            hasCvd: hasCVD,
+            hasRetinopathy: hasRetinopathy,
+            hda1c: _hba1cValue.text.isEmpty ? null : double.tryParse(_hba1cValue.text),
+            hda1cDate: _hba1cDate.text.isEmpty ? null : _convertToISODate(_hba1cDate.text),
+            ldl: _ldlValue.text.isEmpty ? null : double.tryParse(_ldlValue.text),
+            ldlDate: _ldlDate.text.isEmpty ? null : _convertToISODate(_ldlDate.text),
+            takesStatin: takesStatin,
+            uacDate: _sakDate.text.isEmpty ? null : _convertToISODate(_sakDate.text),
+            visitGeneral: VisitGeneral(
+              bmi: bmi,
+              bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
+              diastolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[1]) : null),
+              heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
+              selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
+              selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
+              selfManagementGoalDate: _lastSelfManagementDate.text.isEmpty ? null : _convertToISODate(_lastSelfManagementDate.text),
+              smokingCessationCounselingDate: _smokingCessationCounselingDate.text.isEmpty ? null : _convertToISODate(_smokingCessationCounselingDate.text),
+              smokingStatus: smokingStatus == 'Да',
+              smokingStatusAssessmentDate: _smokingStatusAssessmentDate.text.isEmpty ? null : _convertToISODate(_smokingStatusAssessmentDate.text),
+              systolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[0]) : null),
+              weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
+            ),
+          ) : null,
         ),
       );
       

@@ -9,6 +9,7 @@ import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_event.
 import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_state.dart';
 import 'package:qmed_employee/features/add_patient/logic/data/models/add_patient_model.dart';
 import 'package:qmed_employee/features/add_patient/logic/data/models/sector_model.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 class AddPatientScreen extends StatefulWidget {
   const AddPatientScreen({super.key});
 
@@ -61,6 +62,12 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   final _hospitalizationDate = TextEditingController();
   final _fluVaccinationDate = TextEditingController();
   final _egfrValue = TextEditingController();
+
+  // Маска для номера телефона
+  final phoneMaskFormatter = MaskTextInputFormatter(
+    mask: '+7 (###) ###-##-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
 
   String? selectedDisease;
   
@@ -182,6 +189,7 @@ Color _getBMIColor(double bmi) {
       _weightController.clear();
       _addressController.clear();
       _contactController.clear();
+      phoneMaskFormatter.clear();
       _arterialdavlenie.clear();
       _heartbeat.clear();
       _levelsugar.clear();
@@ -1046,7 +1054,12 @@ Color _getBMIColor(double bmi) {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    AddTextField(controller: _contactController,hintText: '+7 (__)-___-___',),
+                    AddTextField(
+                      controller: _contactController,
+                      hintText: '+7 (___) ___-__-__',
+                      inputFormatters: [phoneMaskFormatter],
+                      keyboardType: TextInputType.phone,
+                    ),
                   ],
                 ),
               ),

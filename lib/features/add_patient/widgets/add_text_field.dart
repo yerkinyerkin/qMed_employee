@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AddTextField extends StatelessWidget {
   const AddTextField({
@@ -20,6 +21,7 @@ class AddTextField extends StatelessWidget {
     this.cursorColor,
     this.autofocus = false,
     this.enabled = true,
+    this.inputFormatters,
   });
 
   final TextEditingController? controller;
@@ -41,6 +43,7 @@ class AddTextField extends StatelessWidget {
   final Color? cursorColor;
   final bool autofocus;
   final bool enabled;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +63,8 @@ class AddTextField extends StatelessWidget {
         onChanged: onChanged,
         onTap: onTap,
         cursorColor: cursorColor ?? Colors.grey,
-        textAlignVertical: TextAlignVertical.center, 
+        textAlignVertical: TextAlignVertical.center,
+        inputFormatters: inputFormatters, 
         decoration: InputDecoration(
           
           isCollapsed: true,                           

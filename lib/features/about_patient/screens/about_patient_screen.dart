@@ -6,6 +6,8 @@ import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_bl
 import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_event.dart';
 import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_state.dart';
 import 'package:qmed_employee/features/about_patient/screens/visits_screen.dart';
+import 'package:qmed_employee/features/about_patient/screens/edit_patient_screen.dart';
+
 
 class AboutPatientScreen extends StatelessWidget {
   final int userId;
@@ -220,7 +222,10 @@ class AboutPatientScreen extends StatelessWidget {
                       icon: Icons.edit,
                       text: 'Редактирование',
                       onTap: () {
-                        // TODO: Редактировать пациента
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => EditPatientScreen()),
+                        );
                       },
                     ),
                     _buildActionButton(

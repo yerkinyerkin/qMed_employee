@@ -1,48 +1,1138 @@
 import 'package:flutter/material.dart';
-
-class VisitsScreen extends StatelessWidget {
-  const VisitsScreen({super.key});
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:qmed_employee/core/const/color_styles.dart';
+import 'package:qmed_employee/core/common/snackbar_service.dart';
+import 'package:qmed_employee/features/add_patient/widgets/add_text_field.dart';
+import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_bloc.dart';
+import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_event.dart';
+import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_state.dart';
+import 'package:qmed_employee/features/add_patient/logic/data/models/add_patient_model.dart';
+import 'package:qmed_employee/features/add_patient/logic/data/models/sector_model.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+class EditPatientScreen extends StatefulWidget {
+  const EditPatientScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-  title: Text('Визиты',style:TextStyle(color:Colors.white)),
-  leading: IconButton(
-    icon: Icon(Icons.arrow_back_ios_new, color: Colors.white),
-    onPressed: () {
-      Navigator.pop(context);
-    },
-  ),
-  backgroundColor: Color(0xFF1C6BA4),
-),
-      body: Column(
-        children:[
-           Padding(
-  padding: const EdgeInsets.only(left:10), 
-  child: Text(
-    'Нурсат Бакыт',
-    style: TextStyle(
-      fontSize: 18,
-      fontFamily:'Montserrat',
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-),
-Padding(
-  padding: const EdgeInsets.only(left:10), 
-  child: Text(
-    '070101550192',
-    style: TextStyle(
-      fontSize: 18,
-      fontFamily:'Montserrat',
-      fontWeight: FontWeight.w400,
-    ),
-  ),
-),
-        ]
-      )
-    );
+  State<EditPatientScreen> createState() => _EditPatientScreenState();
+}
+
+class _EditPatientScreenState extends State<EditPatientScreen> {
+  String? selectedNoezologya;
+  String? smokingStatus;
+  SectorModel? selectedSector;
+  List<SectorModel> sectors = [];
+  double? bmi;
+  final _uchastokController = TextEditingController();
+  final _surnameController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _middleNameController = TextEditingController();
+  final _iinController = TextEditingController();
+  final _birthController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _noezologyaController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _contactController = TextEditingController();
+  final _arterialdavlenie = TextEditingController();
+  final _heartbeat = TextEditingController();
+  final _levelsugar = TextEditingController();
+  final _lastBPDate = TextEditingController();
+  final _lastSelfManagementDate = TextEditingController();
+  final _confidenceLevel = TextEditingController();
+  final _lastConfidenceDate = TextEditingController();
+  final _hba1cValue = TextEditingController();
+  final _hba1cDate = TextEditingController();
+  final _ldlValue = TextEditingController();
+  final _ldlDate = TextEditingController();
+  final _footExamDate = TextEditingController();
+  final _retinopathyDate = TextEditingController();
+  final _sakDate = TextEditingController();
+  final _smokingStatusAssessmentDate = TextEditingController();
+  final _smokingCessationCounselingDate = TextEditingController();
+  final _cholesterolValue = TextEditingController();
+  final _cholesterolDate = TextEditingController();
+  final _riskLevel = TextEditingController();
+  
+  // Хроническая сердечная недостаточность
+  final _efValue = TextEditingController();
+  final _echoDate = TextEditingController();
+  final _hospitalizationDate = TextEditingController();
+  final _fluVaccinationDate = TextEditingController();
+  final _egfrValue = TextEditingController();
+
+  // Маска для номера телефона
+  final phoneMaskFormatter = MaskTextInputFormatter(
+    mask: '+7 (###) ###-##-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  String? selectedDisease;
+  
+  // Артериальная гипертензия
+  String? hypertensionRiskLevel;
+  
+  // Хроническая сердечная недостаточность
+  String? nyhaClass;
+  bool? takesBetaBlockers;
+  bool? takesACEInhibitor;
+  bool? takesAldosteroneAntagonists;
+  bool? hasEchoECGStudy;
+  bool? hasLeftVentricularDysfunction;
+  
+  // Сахарный диабет
+  bool? hasCVD;
+  bool? hasRetinopathy;
+  bool? takesStatin;
+  @override
+  void initState() {
+    super.initState();
+    context.read<AddPatientBloc>().add(LoadSectors());
+  }
+  String _convertDateFormat(String date) {
+    if (date.isEmpty) return '';
+    try {
+      final parts = date.split('.');
+      if (parts.length == 3) {
+        final day = parts[0].padLeft(2, '0');
+        final month = parts[1].padLeft(2, '0');
+        final year = parts[2];
+        return '$year-$month-$day';
+      }
+    } catch (e) {
+      print('Ошибка конвертации даты: $e');
+    }
+    return date; 
+  }
+
+  String _convertToISODate(String date) {
+    if (date.isEmpty) return '';
+    final convertedDate = _convertDateFormat(date);
+    return '${convertedDate}T00:00:00Z';
+  }
+
+  @override
+  void dispose() {
+    _uchastokController.dispose();
+    _surnameController.dispose();
+    _nameController.dispose();
+    _middleNameController.dispose();
+    _iinController.dispose();
+    _birthController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    _addressController.dispose();
+    _contactController.dispose();
+    _arterialdavlenie.dispose();
+    _heartbeat.dispose();
+    _levelsugar.dispose();
+    _lastBPDate.dispose();
+    _lastSelfManagementDate.dispose();
+    _confidenceLevel.dispose();
+    _lastConfidenceDate.dispose();
+    _hba1cValue.dispose();
+    _hba1cDate.dispose();
+    _ldlValue.dispose();
+    _ldlDate.dispose();
+    _footExamDate.dispose();
+    _retinopathyDate.dispose();
+    _sakDate.dispose();
+    _smokingStatusAssessmentDate.dispose();
+    _smokingCessationCounselingDate.dispose();
+    _cholesterolValue.dispose();
+    _cholesterolDate.dispose();
+    _riskLevel.dispose();
+    _efValue.dispose();
+    _echoDate.dispose();
+    _hospitalizationDate.dispose();
+    _fluVaccinationDate.dispose();
+    _egfrValue.dispose();
+    
+    super.dispose();
+  }
+
+  void calculateBMI() {
+  final heightText = _heightController.text;
+  final weightText = _weightController.text;
+  
+  if (heightText.isNotEmpty && weightText.isNotEmpty) {
+    final height = double.tryParse(heightText);
+    final weight = double.tryParse(weightText);
+    
+    if (height != null && weight != null && height > 0) {
+      // ИМТ = вес (кг) / (рост (м))²
+      final heightInMeters = height / 100; // переводим см в метры
+      bmi = weight / (heightInMeters * heightInMeters);
+      setState(() {}); // обновляем UI
+    }
   }
 }
 
+Color _getBMIColor(double bmi) {
+  if (bmi < 18.5) return Colors.blue;      // Недостаточный вес
+  if (bmi < 25) return Colors.green;       // Нормальный вес
+  if (bmi < 30) return Colors.orange;       // Избыточный вес
+  return Colors.red;                       // Ожирение
+  }
+
+  void _clearForm() {
+    setState(() {
+      // Очищаем все контроллеры
+      _surnameController.clear();
+      _nameController.clear();
+      _middleNameController.clear();
+      _iinController.clear();
+      _birthController.clear();
+      _heightController.clear();
+      _weightController.clear();
+      _addressController.clear();
+      _contactController.clear();
+      phoneMaskFormatter.clear();
+      _arterialdavlenie.clear();
+      _heartbeat.clear();
+      _levelsugar.clear();
+      _lastBPDate.clear();
+      _lastSelfManagementDate.clear();
+      _confidenceLevel.clear();
+      _lastConfidenceDate.clear();
+      _hba1cValue.clear();
+      _hba1cDate.clear();
+      _ldlValue.clear();
+      _ldlDate.clear();
+      _footExamDate.clear();
+      _retinopathyDate.clear();
+      _sakDate.clear();
+      _smokingStatusAssessmentDate.clear();
+      _smokingCessationCounselingDate.clear();
+      _cholesterolValue.clear();
+      _cholesterolDate.clear();
+      _riskLevel.clear();
+      _efValue.clear();
+      _echoDate.clear();
+      _hospitalizationDate.clear();
+      _fluVaccinationDate.clear();
+      _egfrValue.clear();
+      
+      selectedDisease = null;
+      selectedSector = null;
+      smokingStatus = null;
+      hypertensionRiskLevel = null;
+      nyhaClass = null;
+      takesBetaBlockers = null;
+      takesACEInhibitor = null;
+      takesAldosteroneAntagonists = null;
+      hasEchoECGStudy = null;
+      hasLeftVentricularDysfunction = null;
+      hasCVD = null;
+      hasRetinopathy = null;
+      takesStatin = null;
+      bmi = null;
+    });
+  }
+
+
+  Widget _buildHeartFailureSection() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Color(0xFFEEF6FC),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Хроническая сердечная недостаточность', style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 16),
+          
+          // NYHA Classification
+          Text('NYHA Classification (NYHA)', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Radio<String>(
+                value: 'Класс I',
+                groupValue: nyhaClass,
+                onChanged: (String? value) {
+                  setState(() {
+                    nyhaClass = value;
+                  });
+                },
+              ),
+              Text('Класс I'),
+              Radio<String>(
+                value: 'Класс II',
+                groupValue: nyhaClass,
+                onChanged: (String? value) {
+                  setState(() {
+                    nyhaClass = value;
+                  });
+                },
+              ),
+              Text('Класс II'),
+            ],
+          ),
+          Row(
+            children: [
+              Radio<String>(
+                value: 'Класс III',
+                groupValue: nyhaClass,
+                onChanged: (String? value) {
+                  setState(() {
+                    nyhaClass = value;
+                  });
+                },
+              ),
+              Text('Класс III'),
+              Radio<String>(
+                value: 'Класс IV',
+                groupValue: nyhaClass,
+                onChanged: (String? value) {
+                  setState(() {
+                    nyhaClass = value;
+                  });
+                },
+              ),
+              Text('Класс IV'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // EF Value
+          Text('Последний показатель ФВ по эхокардиографии', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(controller: _efValue, hintText: 'Введите показатель в %'),
+          const SizedBox(height: 8),
+          
+          // Echo Date
+          Text('Дата последней эхокардиографии', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(
+            controller: _echoDate,
+            hintText: 'дд.мм.гггг',
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                _echoDate.text = '${picked.day}.${picked.month}.${picked.year}';
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          
+          // Beta blockers
+          Text('Принимает ли пациент бета-блокаторы?', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Radio<bool>(
+                value: true,
+                groupValue: takesBetaBlockers,
+                onChanged: (bool? value) {
+                  setState(() {
+                    takesBetaBlockers = value;
+                  });
+                },
+              ),
+              Text('Да'),
+              Radio<bool>(
+                value: false,
+                groupValue: takesBetaBlockers,
+                onChanged: (bool? value) {
+                  setState(() {
+                    takesBetaBlockers = value;
+                  });
+                },
+              ),
+              Text('Нет'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // ACE Inhibitor
+          Text('Принимает ли пациент ингибитор АПФ или БРА?', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Radio<bool>(
+                value: true,
+                groupValue: takesACEInhibitor,
+                onChanged: (bool? value) {
+                  setState(() {
+                    takesACEInhibitor = value;
+                  });
+                },
+              ),
+              Text('Да'),
+              Radio<bool>(
+                value: false,
+                groupValue: takesACEInhibitor,
+                onChanged: (bool? value) {
+                  setState(() {
+                    takesACEInhibitor = value;
+                  });
+                },
+              ),
+              Text('Нет'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // Aldosterone antagonists
+          Text('Принимает ли пациент антагонисты альдостерона? (например, спиронолактон)', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Radio<bool>(
+                value: true,
+                groupValue: takesAldosteroneAntagonists,
+                onChanged: (bool? value) {
+                  setState(() {
+                    takesAldosteroneAntagonists = value;
+                  });
+                },
+              ),
+              Text('Да'),
+              Radio<bool>(
+                value: false,
+                groupValue: takesAldosteroneAntagonists,
+                onChanged: (bool? value) {
+                  setState(() {
+                    takesAldosteroneAntagonists = value;
+                  });
+                },
+              ),
+              Text('Нет'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Hospitalization Date
+          Text('Дата последней госпитализации', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(
+            controller: _hospitalizationDate,
+            hintText: 'дд.мм.гггг',
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                _hospitalizationDate.text = '${picked.day}.${picked.month}.${picked.year}';
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          
+          // Flu Vaccination Date
+          Text('Дата последней вакцинации против гриппа', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(
+            controller: _fluVaccinationDate,
+            hintText: 'дд.мм.гггг',
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                _fluVaccinationDate.text = '${picked.day}.${picked.month}.${picked.year}';
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          
+          // eGFR Value
+          Text('Показания последнего рСКФ', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(controller: _egfrValue, hintText: 'Введите класс'),
+          const SizedBox(height: 16),
+          
+          // EchoECG Study
+          Text('Проводилось ли пациенту с сердечной недостаточностью исследование ЭхоЭКГ во время диагностирования?', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Radio<bool>(
+                value: true,
+                groupValue: hasEchoECGStudy,
+                onChanged: (bool? value) {
+                  setState(() {
+                    hasEchoECGStudy = value;
+                  });
+                },
+              ),
+              Text('Да'),
+              Radio<bool>(
+                value: false,
+                groupValue: hasEchoECGStudy,
+                onChanged: (bool? value) {
+                  setState(() {
+                    hasEchoECGStudy = value;
+                  });
+                },
+              ),
+              Text('Нет'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // Left Ventricular Dysfunction
+          Text('Имеется ли у пациента дисфункция левого желудочка с систолической дисфункцией и выбросом фракции < 40%?', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Radio<bool>(
+                value: true,
+                groupValue: hasLeftVentricularDysfunction,
+                onChanged: (bool? value) {
+                  setState(() {
+                    hasLeftVentricularDysfunction = value;
+                  });
+                },
+              ),
+              Text('Да'),
+              Radio<bool>(
+                value: false,
+                groupValue: hasLeftVentricularDysfunction,
+                onChanged: (bool? value) {
+                  setState(() {
+                    hasLeftVentricularDysfunction = value;
+                  });
+                },
+              ),
+              Text('Нет'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiabetesSection() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Color(0xFFEEF6FC),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Сахарный диабет', style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 16),
+          
+          // HbA1c Analysis
+          Text('Показания последнего анализа HbA1c (гликированный гемоглобин) (%)', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(controller: _hba1cValue, hintText: 'Например, 7.2'),
+          const SizedBox(height: 8),
+          Text('Дата последнего анализа HbA1c (гликированный гемоглобин)', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(
+            controller: _hba1cDate,
+            hintText: 'дд.мм.гггг',
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                _hba1cDate.text = '${picked.day}.${picked.month}.${picked.year}';
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          
+          // LDL Analysis
+          Text('Показания последнего анализа ЛПНП (Липопротеины Низкой Плотности)(ммоль/л)', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(controller: _ldlValue, hintText: 'например, 3'),
+          const SizedBox(height: 8),
+          Text('Дата последнего анализа ЛПНП (Липопротеины Низкой Плотности)', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(
+            controller: _ldlDate,
+            hintText: 'дд.мм.гггг',
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                _ldlDate.text = '${picked.day}.${picked.month}.${picked.year}';
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          
+          // CVD Question
+          Text('Имеется ли у пациента ССЗ (стенокардия, ОИМ, инсульт)?', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Radio<bool>(
+                value: true,
+                groupValue: hasCVD,
+                onChanged: (bool? value) {
+                  setState(() {
+                    hasCVD = value;
+                  });
+                },
+              ),
+              Text('Да'),
+              Radio<bool>(
+                value: false,
+                groupValue: hasCVD,
+                onChanged: (bool? value) {
+                  setState(() {
+                    hasCVD = value;
+                  });
+                },
+              ),
+              Text('Нет'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // Foot Examination Date
+          Text('Дата последнего осмотра стопы', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(
+            controller: _footExamDate,
+            hintText: 'дд.мм.гггг',
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                _footExamDate.text = '${picked.day}.${picked.month}.${picked.year}';
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          
+          // Diabetic Retinopathy
+          Text('Есть ли у пациента диабетическая ретинопатия?', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Radio<bool>(
+                value: true,
+                groupValue: hasRetinopathy,
+                onChanged: (bool? value) {
+                  setState(() {
+                    hasRetinopathy = value;
+                  });
+                },
+              ),
+              Text('Да'),
+              Radio<bool>(
+                value: false,
+                groupValue: hasRetinopathy,
+                onChanged: (bool? value) {
+                  setState(() {
+                    hasRetinopathy = value;
+                  });
+                },
+              ),
+              Text('Нет'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // Fundus Examination Date
+          Text('Дата последнего обследования глазного дна на ретинопатию', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(
+            controller: _retinopathyDate,
+            hintText: 'дд.мм.гггг',
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                _retinopathyDate.text = '${picked.day}.${picked.month}.${picked.year}';
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          
+          // Statin Intake
+          Text('Принимает ли пациент статин?', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Radio<bool>(
+                value: true,
+                groupValue: takesStatin,
+                onChanged: (bool? value) {
+                  setState(() {
+                    takesStatin = value;
+                  });
+                },
+              ),
+              Text('Да'),
+              Radio<bool>(
+                value: false,
+                groupValue: takesStatin,
+                onChanged: (bool? value) {
+                  setState(() {
+                    takesStatin = value;
+                  });
+                },
+              ),
+              Text('Нет'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // SAK Analysis Date
+          Text('Дата последнего анализа САК', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+          const SizedBox(height: 4),
+          AddTextField(
+            controller: _sakDate,
+            hintText: 'дд.мм.гггг',
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                _sakDate.text = '${picked.day}.${picked.month}.${picked.year}';
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AddPatientBloc, AddPatientState>(
+      listener: (context, state) {
+        if (state is AddPatientSuccess) {
+          SnackbarService.showSuccess(context, 'Пациент успешно добавлен!');
+          // Очищаем форму после успешного добавления
+          _clearForm();
+        }
+        if (state is AddPatientFailure) {
+          SnackbarService.showError(context, 'Ошибка: ${state.error}');
+        }
+        if (state is SectorsLoaded) {
+          setState(() {
+            sectors = state.sectors;
+          });
+          print('Загружено участков: ${sectors.length}');
+          for (var sector in sectors) {
+            print('Участок: ${sector.address} (ID: ${sector.sectorId})');
+          }
+        }
+        if (state is SectorsLoadFailed) {
+          print('Ошибка загрузки участков: ${state.error}');
+          SnackbarService.showError(context, 'Ошибка загрузки участков: ${state.error}');
+        }
+      },
+      child: BlocBuilder<AddPatientBloc, AddPatientState>(
+        builder: (context, state) {
+          return Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              backgroundColor: Color(0xFF1C6BA4),
+              title: Text('Добавить пациента',style: GoogleFonts.montserrat(fontSize: 17,
+              color: ColorStyles.whiteColor,fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            body: state is AddPatientLoading 
+              ? Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Секция 1: Личные данные
+              Container(
+                padding: EdgeInsets.all(16),
+                margin: EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: Color(0xFFEEF6FC),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    
+              Row(
+                children: [
+                        Text('Участок',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor))
+                ],
+              ),
+              const SizedBox(height: 4),
+                    DropdownButtonFormField<SectorModel>(
+                      value: selectedSector,
+                      hint: Text('Выберите участок'),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      items: sectors.map((SectorModel sector) {
+                        return DropdownMenuItem<SectorModel>(
+                          value: sector,
+                          child: Text(sector.address),
+                        );
+                      }).toList(),
+                      onChanged: (SectorModel? newValue) {
+                        setState(() {
+                          selectedSector = newValue;
+                        });
+                      },
+                    ),
+              const SizedBox(height: 8),
+                    
+              Row(
+                children: [
+                  Text('Фамилия',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                ],
+              ),
+              const SizedBox(height: 4),
+                    AddTextField(controller: _surnameController,hintText: 'Фамилия',),
+              const SizedBox(height: 8),
+                    
+              Row(
+                children: [
+                  Text('Имя',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                ],
+              ),
+              const SizedBox(height: 4),
+                    AddTextField(controller: _nameController,hintText: 'Имя',),
+              const SizedBox(height: 8),
+                    
+              Row(
+                children: [
+                  Text('Отчество',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                ],
+              ),
+              const SizedBox(height: 4),
+                    AddTextField(controller: _middleNameController,hintText: 'Отчество',),
+              const SizedBox(height: 8),
+                    
+              Row(
+                children: [
+                  Text('ИИН',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                ],
+              ),
+              const SizedBox(height: 4),
+                    AddTextField(controller: _iinController,hintText: 'Введите ИИН',),
+              const SizedBox(height: 8),
+                    
+              Row(
+                children: [
+                  Text('Дата рождения',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                ],
+              ),
+              const SizedBox(height: 4),
+              AddTextField(
+                      controller: _birthController,
+                      hintText: 'ДД.ММ.ГГГГ',
+  onTap: () async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+                          _birthController.text =
+          '${picked.day}.${picked.month}.${picked.year}';
+    }
+  },
+                    ),
+
+
+                    const SizedBox(height: 8),
+                    
+                    Row(
+                      children: [
+                        Text('Адрес проживания',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    AddTextField(controller: _addressController,hintText: 'Введите адрес',),
+                    const SizedBox(height: 8),
+                    
+                    Row(
+                      children: [
+                        Text('Контактный телефон',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    AddTextField(
+                      controller: _contactController,
+                      hintText: '+7 (___) ___-__-__',
+                      inputFormatters: [phoneMaskFormatter],
+                      keyboardType: TextInputType.phone,
+                    ),
+                  ],
+                ),
+              ),
+              
+      
+              
+              
+              Container(
+                padding: EdgeInsets.all(16),
+                margin: EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: Color(0xFFEEF6FC),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Выберите заболевание:', style: GoogleFonts.montserrat(fontSize: 14, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Radio<String>(
+                          value: 'Артериальная гипертензия',
+                          groupValue: selectedDisease,
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedDisease = value;
+                            });
+                          },
+                        ),
+                        Text(
+                          'Артериальная гипертензия',
+                          style: GoogleFonts.montserrat(color: ColorStyles.blackColor),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Radio<String>(
+                          value: 'Хроническая сердечная недостаточность',
+                          groupValue: selectedDisease,
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedDisease = value;
+                            });
+                          },
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Хроническая сердечная недостаточность',
+                            style: GoogleFonts.montserrat(color: ColorStyles.blackColor),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Radio<String>(
+                          value: 'Сахарный диабет',
+                          groupValue: selectedDisease,
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedDisease = value;
+                            });
+                          },
+                        ),
+                        Text(
+                          'Сахарный диабет',
+                          style: GoogleFonts.montserrat(color: ColorStyles.blackColor),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.all(16),
+                margin: EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: Color(0xFFEEF6FC),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text('Артериальное давление',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),),
+                        Text('*', style: TextStyle(color: Colors.red, fontSize: 16)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    AddTextField(controller: _arterialdavlenie,hintText: 'Пример: 120/80',),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text('Частота сердцебиения',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    AddTextField(controller: _heartbeat,hintText: 'Введите частоту сердцебиения',),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text('Уровень сахара',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),),
+                        Text('*', style: TextStyle(color: Colors.red, fontSize: 16)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    AddTextField(controller: _levelsugar,hintText: 'Введите уровень сахара',),
+                  ],
+                ),
+              ),
+       SizedBox(
+  width: 200, 
+  height: 35, 
+  child: TextButton(
+    style: TextButton.styleFrom(
+      backgroundColor: Color(0xFF1C6BA4),
+      foregroundColor: Colors.white, 
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    onPressed: () {
+      final patient = PatientModel(
+        sectorId: selectedSector?.sectorId,
+        lastName: _surnameController.text,
+        firstName: _nameController.text,
+        middleName: _middleNameController.text.isEmpty ? null : _middleNameController.text,
+        iin: _iinController.text,
+        birthDate: _convertDateFormat(_birthController.text),
+        heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
+        weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
+        address: _addressController.text,
+        phoneNumber: _contactController.text,
+        diseases: selectedDisease != null ? [selectedDisease == 'Артериальная гипертензия' ? 1 : selectedDisease == 'Хроническая сердечная недостаточность' ? 2 : 3] : [],
+        bloodPressure: _arterialdavlenie.text.isEmpty ? null : _arterialdavlenie.text,
+        sugarLevel: _levelsugar.text.isEmpty ? null : double.tryParse(_levelsugar.text),
+        heartRate: _heartbeat.text.isEmpty ? null : int.tryParse(_heartbeat.text),
+        visitData: VisitData(
+          visitHypertension: selectedDisease == 'Артериальная гипертензия' ? VisitHypertension(
+            ldl: _ldlValue.text.isEmpty ? null : double.tryParse(_ldlValue.text),
+            ldlDate: _ldlDate.text.isEmpty ? null : _convertToISODate(_ldlDate.text),
+            cholesterol: _cholesterolValue.text.isEmpty ? null : double.tryParse(_cholesterolValue.text),
+            cholesterolDate: _cholesterolDate.text.isEmpty ? null : _convertToISODate(_cholesterolDate.text),
+            riskLevel: _riskLevel.text.isEmpty ? null : int.tryParse(_riskLevel.text),
+            visitGeneral: VisitGeneral(
+              bmi: bmi,
+              bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
+              diastolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[1]) : null),
+              heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
+              selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
+              selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
+              selfManagementGoalDate: _lastSelfManagementDate.text.isEmpty ? null : _convertToISODate(_lastSelfManagementDate.text),
+              smokingCessationCounselingDate: _smokingCessationCounselingDate.text.isEmpty ? null : _convertToISODate(_smokingCessationCounselingDate.text),
+              smokingStatus: smokingStatus == 'Да',
+              smokingStatusAssessmentDate: _smokingStatusAssessmentDate.text.isEmpty ? null : _convertToISODate(_smokingStatusAssessmentDate.text),
+              systolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[0]) : null),
+              weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
+            ),
+          ) : null,
+          visitHeartFailure: selectedDisease == 'Хроническая сердечная недостаточность' ? VisitHeartFailure(
+            aceInhibitors: takesACEInhibitor,
+            aldosteroneAntagonists: takesAldosteroneAntagonists,
+            betaBlockers: takesBetaBlockers,
+            echoDate: _echoDate.text.isEmpty ? null : _convertToISODate(_echoDate.text),
+            fluVaccinationDate: _fluVaccinationDate.text.isEmpty ? null : _convertToISODate(_fluVaccinationDate.text),
+            gfr: _egfrValue.text.isEmpty ? null : int.tryParse(_egfrValue.text),
+            hadEcho: hasEchoECGStudy,
+            hospitalizationDate: _hospitalizationDate.text.isEmpty ? null : _convertToISODate(_hospitalizationDate.text),
+            leftVentricleDysfunction: hasLeftVentricularDysfunction,
+            lvef: _efValue.text.isEmpty ? null : int.tryParse(_efValue.text),
+            nyhaClass: nyhaClass == 'Класс I' ? 1 : nyhaClass == 'Класс II' ? 2 : nyhaClass == 'Класс III' ? 3 : nyhaClass == 'Класс IV' ? 4 : null,
+            visitGeneral: VisitGeneral(
+              bmi: bmi,
+              bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
+              diastolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[1]) : null),
+              heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
+              selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
+              selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
+              selfManagementGoalDate: _lastSelfManagementDate.text.isEmpty ? null : _convertToISODate(_lastSelfManagementDate.text),
+              smokingCessationCounselingDate: _smokingCessationCounselingDate.text.isEmpty ? null : _convertToISODate(_smokingCessationCounselingDate.text),
+              smokingStatus: smokingStatus == 'Да',
+              smokingStatusAssessmentDate: _smokingStatusAssessmentDate.text.isEmpty ? null : _convertToISODate(_smokingStatusAssessmentDate.text),
+              systolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[0]) : null),
+              weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
+            ),
+          ) : null,
+          visitDiabetes: selectedDisease == 'Сахарный диабет' ? VisitDiabetes(
+            eyeExamDate: _retinopathyDate.text.isEmpty ? null : _convertToISODate(_retinopathyDate.text),
+            footExamDate: _footExamDate.text.isEmpty ? null : _convertToISODate(_footExamDate.text),
+            hasCvd: hasCVD,
+            hasRetinopathy: hasRetinopathy,
+            hda1c: _hba1cValue.text.isEmpty ? null : double.tryParse(_hba1cValue.text),
+            hda1cDate: _hba1cDate.text.isEmpty ? null : _convertToISODate(_hba1cDate.text),
+            ldl: _ldlValue.text.isEmpty ? null : double.tryParse(_ldlValue.text),
+            ldlDate: _ldlDate.text.isEmpty ? null : _convertToISODate(_ldlDate.text),
+            takesStatin: takesStatin,
+            uacDate: _sakDate.text.isEmpty ? null : _convertToISODate(_sakDate.text),
+            visitGeneral: VisitGeneral(
+              bmi: bmi,
+              bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
+              diastolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[1]) : null),
+              heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
+              selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
+              selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
+              selfManagementGoalDate: _lastSelfManagementDate.text.isEmpty ? null : _convertToISODate(_lastSelfManagementDate.text),
+              smokingCessationCounselingDate: _smokingCessationCounselingDate.text.isEmpty ? null : _convertToISODate(_smokingCessationCounselingDate.text),
+              smokingStatus: smokingStatus == 'Да',
+              smokingStatusAssessmentDate: _smokingStatusAssessmentDate.text.isEmpty ? null : _convertToISODate(_smokingStatusAssessmentDate.text),
+              systolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[0]) : null),
+              weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
+            ),
+          ) : null,
+        ),
+      );
+      
+      context.read<AddPatientBloc>().add(AddPatientButtonPressed(patient));
+    },
+    child: const Text('Сохранить изменения'),
+  ),
+)
+
+            ],
+          ),
+        ),
+      ),
+          );
+        },
+      ),
+    );
+  }
+}

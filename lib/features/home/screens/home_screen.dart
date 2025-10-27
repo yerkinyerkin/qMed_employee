@@ -6,7 +6,7 @@ import 'package:qmed_employee/core/const/color_styles.dart';
 import 'package:qmed_employee/core/get_it/injection_container.dart';
 import 'package:qmed_employee/features/home/logic/bloc/home_bloc.dart';
 import 'package:qmed_employee/features/notification/screens/notification_screen.dart';
-
+import 'package:qmed_employee/features/about_patient/screens/about_patient_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -136,65 +136,75 @@ class _HomeScreenState extends State<HomeScreen> {
                               final bg = _zoneColor(zone);
                               final textColor = _textOnZone(zone);
                               final isDefault = (zone != 'green' && zone != 'yellow' && zone != 'red');
-
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: bg,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: isDefault ? Border.all(color: const Color(0xFFE5E5E5)) : null,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '${p.lastName ?? ''} ${p.firstName ?? ''}',
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 14, color: textColor, fontWeight: FontWeight.w600),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Text('ИИН: ',
-                                            style: GoogleFonts.montserrat(
-                                              fontSize: 11,
-                                              color: textColor.withOpacity(0.9),
-                                              fontWeight: FontWeight.w400,
-                                            )),
-                                          Text(p.iin ?? '',
-                                            style: GoogleFonts.montserrat(
-                                              fontSize: 11,
-                                              color: textColor.withOpacity(0.9),
-                                              fontWeight: FontWeight.w400,
-                                            )),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Text('Заболевания: ',
-                                            style: GoogleFonts.montserrat(
-                                              fontSize: 11,
-                                              color: textColor.withOpacity(0.9),
-                                              fontWeight: FontWeight.w400,
-                                            )),
-                                          Expanded(
-                                            child: Text(
-                                              (p.diseases ?? [])
-                                                  .map((d) => d.name ?? '')
-                                                  .where((s) => s.isNotEmpty)
-                                                  .join(', '),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
+                              
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AboutPatientScreen(userId: p.userId ?? 0),
+                                    ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: bg,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: isDefault ? Border.all(color: const Color(0xFFE5E5E5)) : null,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${p.lastName ?? ''} ${p.firstName ?? ''}',
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 14, color: textColor, fontWeight: FontWeight.w600),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Text('ИИН: ',
                                               style: GoogleFonts.montserrat(
-                                                fontSize: 11, color: textColor, fontWeight: FontWeight.w500),
+                                                fontSize: 11,
+                                                color: textColor.withOpacity(0.9),
+                                                fontWeight: FontWeight.w400,
+                                              )),
+                                            Text(p.iin ?? '',
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 11,
+                                                color: textColor.withOpacity(0.9),
+                                                fontWeight: FontWeight.w400,
+                                              )),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text('Заболевания: ',
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 11,
+                                                color: textColor.withOpacity(0.9),
+                                                fontWeight: FontWeight.w400,
+                                              )),
+                                            Expanded(
+                                              child: Text(
+                                                (p.diseases ?? [])
+                                                    .map((d) => d.name ?? '')
+                                                    .where((s) => s.isNotEmpty)
+                                                    .join(', '),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: GoogleFonts.montserrat(
+                                                  fontSize: 11, color: textColor, fontWeight: FontWeight.w500),
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );

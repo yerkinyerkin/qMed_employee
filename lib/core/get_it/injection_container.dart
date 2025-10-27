@@ -2,6 +2,9 @@ import 'package:get_it/get_it.dart';
 import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_bloc.dart';
 import 'package:qmed_employee/features/add_patient/logic/data/datasources/add_patient_datasource.dart';
 import 'package:qmed_employee/features/add_patient/logic/data/repositories/add_patient_repository.dart';
+import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_bloc.dart';
+import 'package:qmed_employee/features/about_patient/logic/data/datasources/about_patient_datasource.dart';
+import 'package:qmed_employee/features/about_patient/logic/data/repositories/about_patient_repository.dart';
 import 'package:qmed_employee/features/home/logic/bloc/home_bloc.dart';
 import 'package:qmed_employee/features/home/logic/data/datasources/home_datasource.dart';
 import 'package:qmed_employee/features/home/logic/data/repositories/home_repository.dart';
@@ -39,4 +42,11 @@ void initGetIt() async {
   sl.registerLazySingleton<HomeRepository>(() => HomeRepositoryImpl(sl(),sl()));
 
   sl.registerLazySingleton<HomeDataSource>(() => HomeDatasourceImpl());
+
+  // About Patient
+  sl.registerLazySingleton<AboutPatientDataSource>(() => AboutPatientDataSourceImpl());
+
+  sl.registerLazySingleton<AboutPatientRepository>(() => AboutPatientRepositoryImpl(sl()));
+
+  sl.registerFactory<AboutPatientBloc>(() => AboutPatientBloc(sl(), sl()));
 }

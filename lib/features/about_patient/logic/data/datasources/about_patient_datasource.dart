@@ -7,6 +7,9 @@ abstract class AboutPatientDataSource {
   Future<Response> AboutPatient(PatientModel patient);
   Future<List<SectorModel>> getSectors(int polyclinicId);
   Future<Response> getPatientById(int userId);
+  Future<Response> updatePatient(int patientId, Map<String, dynamic> patientData);
+  Future<Response> deletePatient(int patientId, int removalReasonId, {String? causeOfDeath});
+  Future<Response> hospitalizePatient(int patientId, {required String createdAt, required String reason});
 }
 
 class AboutPatientDataSourceImpl implements AboutPatientDataSource {
@@ -68,6 +71,107 @@ class AboutPatientDataSourceImpl implements AboutPatientDataSource {
       print('Запрашиваем пациента с ID: $userId');
       final response = await dio.get('/patient/$userId');
       print('Получен ответ: ${response.statusCode}');
+      return response;
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Server error: ${e.response?.statusCode} - ${e.response?.data}');
+      } else {
+        throw Exception('Network error: ${e.message}');
+      }
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  @override
+  Future<Response> updatePatient(int patientId, Map<String, dynamic> patientData) async {
+    try {
+      print('Обновляем пациента с ID: $patientId');
+      print('Данные для обновления: $patientData');
+      
+      final response = await dio.put(
+        '/patient/$patientId',
+        data: patientData,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+      
+      print('Пациент обновлен, статус: ${response.statusCode}');
+      return response;
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Server error: ${e.response?.statusCode} - ${e.response?.data}');
+      } else {
+        throw Exception('Network error: ${e.message}');
+      }
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  @override
+  Future<Response> deletePatient(int patientId, int removalReasonId, {String? causeOfDeath}) async {
+    try {
+      print('Удаляем пациента с ID: $patientId');
+      print('Причина удаления: $removalReasonId');
+      print('Причина смерти: $causeOfDeath');
+      
+      final data = <String, dynamic>{
+        'removal_reason_id': removalReasonId,
+      };
+      
+      // Добавляем cause_of_death только если оно есть
+      if (causeOfDeath != null && causeOfDeath.isNotEmpty) {
+        data['cause_of_death'] = causeOfDeath;
+      }
+      
+      print('Отправляем данные: $data');
+      print('URL: /patient/$patientId/remove');
+      
+      final response = await dio.post(
+        '/patient/$patientId/remove',
+        data: data,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+      
+      print('Пациент удален, статус: ${response.statusCode}');
+      return response;
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Server error: ${e.response?.statusCode} - ${e.response?.data}');
+      } else {
+        throw Exception('Network error: ${e.message}');
+      }
+    } catch (e) {
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  @override
+  Future<Response> hospitalizePatient(int patientId, {required String createdAt, required String reason}) async {
+    try {
+      final data = <String, dynamic>{
+        'created_at': createdAt,
+        'reason': reason,
+      };
+
+      final response = await dio.post(
+        '/patient/$patientId/hospitalize',
+        data: data,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
       return response;
     } on DioException catch (e) {
       if (e.response != null) {

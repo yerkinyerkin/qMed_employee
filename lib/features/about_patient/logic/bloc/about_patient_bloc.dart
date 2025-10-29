@@ -50,5 +50,45 @@ class AboutPatientBloc extends Bloc<AboutPatientEvent, AboutPatientState> {
         emit(SectorsLoadFailed(e.toString()));
       }
     });
+
+    on<UpdatePatientEvent>((event, emit) async {
+      emit(PatientUpdateLoading());
+      try {
+        await repository.updatePatient(event.patientId, event.patientData);
+        emit(PatientUpdateSuccess('Пациент успешно обновлен!'));
+      } catch (e) {
+        emit(PatientUpdateFailure(e.toString()));
+      }
+    });
+
+    on<DeletePatientEvent>((event, emit) async {
+      emit(PatientDeleteLoading());
+      try {
+        await repository.deletePatient(
+          event.patientId, 
+          event.removalReasonId,
+          causeOfDeath: event.causeOfDeath,
+        );
+        emit(PatientDeleteSuccess('Пациент успешно удален!'));
+      } catch (e) {
+        emit(PatientDeleteFailure(e.toString()));
+      }
+    });
+
+    on<HospitalizePatientEvent>((event, emit) async {
+      emit(PatientHospitalizeLoading());
+      try {
+        await repository.hospitalizePatient(
+          event.patientId,
+          createdAt: event.createdAt,
+          reason: event.reason,
+        );
+        // После успешной госпитализации загружаем данные пациента снова, чтобы остаться на странице
+        final patient = await repository.getPatientById(event.patientId);
+        emit(AboutPatientSuccess(patient));
+      } catch (e) {
+        emit(PatientHospitalizeFailure(e.toString()));
+      }
+    });
   }
 }

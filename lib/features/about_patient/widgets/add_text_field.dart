@@ -22,6 +22,7 @@ class AddTextField extends StatelessWidget {
     this.autofocus = false,
     this.enabled = true,
     this.inputFormatters,
+    this.readOnly = false,
   });
 
   final TextEditingController? controller;
@@ -44,6 +45,7 @@ class AddTextField extends StatelessWidget {
   final bool autofocus;
   final bool enabled;
   final List<TextInputFormatter>? inputFormatters;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +61,7 @@ class AddTextField extends StatelessWidget {
         obscureText: obscureText,
         autofocus: autofocus,
         enabled: enabled,
+        readOnly: readOnly,
         style: textStyle,
         onChanged: onChanged,
         onTap: onTap,

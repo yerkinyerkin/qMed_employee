@@ -31,3 +31,39 @@ class SectorsLoadFailed extends AboutPatientState {
   final String error;
   SectorsLoadFailed(this.error);
 }
+
+class PatientUpdateLoading extends AboutPatientState {}
+
+class PatientUpdateSuccess extends AboutPatientState {
+  final String message;
+  PatientUpdateSuccess(this.message);
+}
+
+class PatientUpdateFailure extends AboutPatientState {
+  final String error;
+  PatientUpdateFailure(this.error);
+}
+
+class PatientDeleteLoading extends AboutPatientState {}
+
+class PatientDeleteSuccess extends AboutPatientState {
+  final String message;
+  PatientDeleteSuccess(this.message);
+}
+
+class PatientDeleteFailure extends AboutPatientState {
+  final String error;
+  PatientDeleteFailure(this.error);
+}
+
+class PatientHospitalizeLoading extends AboutPatientState {}
+
+class PatientHospitalizeSuccess extends AboutPatientState {
+  final String message;
+  PatientHospitalizeSuccess(this.message);
+}
+
+class PatientHospitalizeFailure extends AboutPatientState {
+  final String error;
+  PatientHospitalizeFailure(this.error);
+}

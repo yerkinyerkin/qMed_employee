@@ -16,3 +16,34 @@ class FetchPatientEvent extends AboutPatientEvent {
   
   FetchPatientEvent({required this.userId});
 }
+
+class UpdatePatientEvent extends AboutPatientEvent {
+  final int patientId;
+  final Map<String, dynamic> patientData;
+  
+  UpdatePatientEvent({required this.patientId, required this.patientData});
+}
+
+class DeletePatientEvent extends AboutPatientEvent {
+  final int patientId;
+  final int removalReasonId;
+  final String? causeOfDeath;
+  
+  DeletePatientEvent({
+    required this.patientId,
+    required this.removalReasonId,
+    this.causeOfDeath,
+  });
+}
+
+class HospitalizePatientEvent extends AboutPatientEvent {
+  final int patientId;
+  final String createdAt; // ISO8601
+  final String reason;
+
+  HospitalizePatientEvent({
+    required this.patientId,
+    required this.createdAt,
+    required this.reason,
+  });
+}

@@ -1,12 +1,205 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:qmed_employee/core/common/snackbar_service.dart';
 import 'package:qmed_employee/core/get_it/injection_container.dart';
 import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_bloc.dart';
 import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_event.dart';
 import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_state.dart';
 import 'package:qmed_employee/features/about_patient/screens/visits_screen.dart';
 import 'package:qmed_employee/features/about_patient/screens/edit_patient_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:qmed_employee/features/about_patient/widgets/add_text_field.dart';
+import 'package:qmed_employee/features/about_patient/widgets/delete_patient_modal.dart';
+import 'package:qmed_employee/core/const/color_styles.dart';
+
+
+
+Future<void> _makePhoneCall(String phoneNumber, BuildContext context) async {
+  if (phoneNumber.isEmpty) {
+    SnackbarService.showError(context, 'Номер телефона не указан');
+    return;
+  }
+  
+  final cleanPhoneNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+  final phoneUrl = Uri.parse('tel:$cleanPhoneNumber');
+  
+  try {
+    if (await canLaunchUrl(phoneUrl)) {
+      await launchUrl(phoneUrl);
+    } else {
+      SnackbarService.showError(context, 'На этом устройстве звонки не поддерживаются');
+    }
+  } catch (e) {
+    SnackbarService.showError(context, 'Не удалось совершить звонок');
+  }
+}
+
+class ModalBottomSheetApp extends StatefulWidget {
+  final int patientId;
+  final AboutPatientBloc bloc;
+  const ModalBottomSheetApp({super.key, required this.patientId, required this.bloc});
+
+  @override
+  State<ModalBottomSheetApp> createState() => _ModalBottomSheetAppState();
+}
+
+class _ModalBottomSheetAppState extends State<ModalBottomSheetApp> {
+  final TextEditingController _hospitalDateController = TextEditingController();
+  final TextEditingController _causeDiagnozController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Очищаем поля при открытии модального окна
+    _hospitalDateController.clear();
+    _causeDiagnozController.clear();
+  }
+
+  @override
+  void dispose() {
+    // Очищаем контроллеры при закрытии
+    _hospitalDateController.dispose();
+    _causeDiagnozController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          _hospitalDateController.clear();
+          _causeDiagnozController.clear();
+        }
+      },
+      child: Container(
+        height: 400,
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+        children:[
+           Row(
+                children: [
+                  Text('Дата госпитализации',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                ],
+              ),
+              const SizedBox(height: 4),
+              AddTextField(
+                      controller: _hospitalDateController,
+                      hintText: 'ДД.ММ.ГГГГ',
+                      readOnly: true,
+                      onTap: () async {
+                        final now = DateTime.now();
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: now,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (picked != null) {
+                          final dd = picked.day.toString().padLeft(2, '0');
+                          final mm = picked.month.toString().padLeft(2, '0');
+                          final yyyy = picked.year.toString();
+                          _hospitalDateController.text = '$dd.$mm.$yyyy';
+                        }
+                      },
+                    ),
+                    const SizedBox(height:10),
+                    Row(
+                children: [
+                  Text('Причина (диагноз)',style: GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w600,color: ColorStyles.blackColor),)
+                ],
+              ),
+              const SizedBox(height: 4),
+              AddTextField(
+                      controller: _causeDiagnozController,
+                      hintText: 'Причина (диагноз)',
+             onTap: () async {
+             },
+            ),
+
+
+            const SizedBox(height:10),
+            SizedBox(
+  width: 200,
+  height: 35,
+  child: TextButton(
+    onPressed: () {
+      final dateText = _hospitalDateController.text.trim();
+      final reasonText = _causeDiagnozController.text.trim();
+      if (dateText.isEmpty || reasonText.isEmpty) {
+        SnackbarService.showError(context, 'Укажите дату и причину');
+        return;
+      }
+      // Парсим дату
+      final parts = dateText.split('.');
+      if (parts.length != 3) {
+        SnackbarService.showError(context, 'Введите дату в формате ДД.ММ.ГГГГ');
+        return;
+      }
+      
+      int? day, month, year;
+      try {
+        day = int.parse(parts[0].trim());
+        month = int.parse(parts[1].trim());
+        year = int.parse(parts[2].trim());
+      } catch (e) {
+        SnackbarService.showError(context, 'Введите дату в формате ДД.ММ.ГГГГ');
+        return;
+      }
+      
+      // Проверяем валидность диапазонов
+      if (day < 1 || day > 31 || month < 1 || month > 12 || year < 2000 || year > 2100) {
+        SnackbarService.showError(context, 'Введите корректную дату');
+        return;
+      }
+      
+      // Создаем дату с временем 00:00:00 в UTC
+      try {
+        final date = DateTime.utc(year, month, day, 0, 0, 0);
+        
+        if (date.year != year || date.month != month || date.day != day) {
+          SnackbarService.showError(context, 'Неверная дата (например, 31 февраля)');
+          return;
+        }
+        
+
+        String createdAt = date.toIso8601String();
+        if (createdAt.contains('.')) {
+          createdAt = createdAt.substring(0, createdAt.indexOf('.')) + 'Z';
+        }
+        
+        // Используем BLoC, переданный через параметр
+        widget.bloc.add(HospitalizePatientEvent(patientId: widget.patientId, createdAt: createdAt, reason: reasonText));
+        
+        // Очищаем поля перед закрытием
+        _hospitalDateController.clear();
+        _causeDiagnozController.clear();
+        Navigator.pop(context);
+      } catch (dateError) {
+        SnackbarService.showError(context, 'Ошибка при создании даты: ${dateError.toString()}');
+      }
+    },
+    style: TextButton.styleFrom(
+      backgroundColor: const Color(0xFF1C6BA4),
+      foregroundColor: Colors.white,
+      textStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    child: const Text("Сохранить"), 
+  ),
+)
+
+        ]
+      ),
+      ),
+    );
+  }
+}
 
 
 class AboutPatientScreen extends StatelessWidget {
@@ -30,20 +223,59 @@ class AboutPatientScreen extends StatelessWidget {
           ),
           backgroundColor: Color(0xFF1C6BA4),
         ),
-        body: BlocBuilder<AboutPatientBloc, AboutPatientState>(
+        body: MultiBlocListener(
+          listeners: [
+            BlocListener<AboutPatientBloc, AboutPatientState>(
+              listenWhen: (previous, current) => current is PatientDeleteSuccess || current is PatientDeleteFailure,
+              listener: (context, state) {
+                if (state is PatientDeleteSuccess) {
+                  SnackbarService.showSuccess(context, state.message);
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                } else if (state is PatientDeleteFailure) {
+                  SnackbarService.showError(context, state.error);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            BlocListener<AboutPatientBloc, AboutPatientState>(
+              listenWhen: (previous, current) {
+                // Отслеживаем успешную госпитализацию: переход от PatientHospitalizeLoading к AboutPatientSuccess
+                return (previous is PatientHospitalizeLoading && current is AboutPatientSuccess) ||
+                       current is PatientHospitalizeFailure;
+              },
+              listener: (context, state) {
+                if (state is AboutPatientSuccess) {
+                  // Показываем сообщение об успехе после успешной госпитализации
+                  SnackbarService.showSuccess(context, 'Госпитализация сохранена');
+                } else if (state is PatientHospitalizeFailure) {
+                  SnackbarService.showError(context, state.error);
+                }
+              },
+            ),
+          ],
+          child: BlocBuilder<AboutPatientBloc, AboutPatientState>(
           builder: (context, state) {
-            if (state is AboutPatientLoading) {
+            if (state is AboutPatientLoading || state is PatientDeleteLoading || state is PatientHospitalizeLoading) {
               return Center(child: CircularProgressIndicator());
             }
             
-            if (state is AboutPatientError) {
+            if (state is AboutPatientError || state is PatientDeleteFailure) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.error_outline, size: 60, color: Colors.red),
                     SizedBox(height: 16),
-                    Text('Ошибка: ${state.message}'),
+                    Text(state is AboutPatientError 
+                        ? 'Ошибка: ${state.message}' 
+                        : 'Ошибка: ${(state as PatientDeleteFailure).error}'),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      },
+                      child: const Text('Вернуться на главную'),
+                    ),
                   ],
                 ),
               );
@@ -206,7 +438,14 @@ class AboutPatientScreen extends StatelessWidget {
                       icon: Icons.add_circle_outline,
                       text: 'Госпитализация',
                       onTap: () {
-                        // TODO: Навигация к госпитализации
+                        final bloc = context.read<AboutPatientBloc>();
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) => BlocProvider.value(
+                            value: bloc,
+                            child: ModalBottomSheetApp(patientId: patient.userId ?? 0, bloc: bloc),
+                          ),
+                        );
                       },
                     ),
                     _buildActionButton(
@@ -214,8 +453,9 @@ class AboutPatientScreen extends StatelessWidget {
                       icon: Icons.phone,
                       text: 'Связаться',
                       onTap: () {
-                        // TODO: Позвонить пациенту
-                      },
+    final phoneNumber = patient.phoneNumber ?? patient.relativePhoneNumber ?? '';
+    _makePhoneCall(phoneNumber, context);
+  },
                     ),
                     _buildActionButton(
                       context,
@@ -224,7 +464,7 @@ class AboutPatientScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => EditPatientScreen()),
+                          MaterialPageRoute(builder: (context) => EditPatientScreen(patientId: patient.userId ?? 0)),
                         );
                       },
                     ),
@@ -233,7 +473,18 @@ class AboutPatientScreen extends StatelessWidget {
                       icon: Icons.delete,
                       text: 'Удалить пациента',
                       onTap: () {
-                        // TODO: Удалить пациента
+                        final bloc = context.read<AboutPatientBloc>();
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                          ),
+                          builder: (context) => DeletePatientModal(
+                            patientId: patient.userId ?? 0,
+                            bloc: bloc,
+                          ),
+                        );
                       },
                     ),
                   ],
@@ -243,6 +494,7 @@ class AboutPatientScreen extends StatelessWidget {
             
             return SizedBox.shrink();
           },
+        ),
         ),
       ),
     );

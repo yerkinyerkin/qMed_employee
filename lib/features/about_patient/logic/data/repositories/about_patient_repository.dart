@@ -7,6 +7,9 @@ abstract class AboutPatientRepository {
   Future<void> AboutPatient(PatientModel patient);
   Future<List<SectorModel>> getSectors(int polyclinicId);
   Future<PatientModel> getPatientById(int userId);
+  Future<void> updatePatient(int patientId, Map<String, dynamic> patientData);
+  Future<void> deletePatient(int patientId, int removalReasonId, {String? causeOfDeath});
+  Future<void> hospitalizePatient(int patientId, {required String createdAt, required String reason});
 }
 
 class AboutPatientRepositoryImpl implements AboutPatientRepository {
@@ -39,6 +42,34 @@ class AboutPatientRepositoryImpl implements AboutPatientRepository {
       return PatientModel.fromJson(response.data);
     } catch (e) {
       throw Exception('Failed to get patient: $e');
+    }
+  }
+
+
+  @override
+  Future<void> updatePatient(int patientId, Map<String, dynamic> patientData) async {
+    try {
+      await dataSource.updatePatient(patientId, patientData);
+    } catch (e) {
+      throw Exception('Failed to update patient: $e');
+    }
+  }
+
+  @override
+  Future<void> deletePatient(int patientId, int removalReasonId, {String? causeOfDeath}) async {
+    try {
+      await dataSource.deletePatient(patientId, removalReasonId, causeOfDeath: causeOfDeath);
+    } catch (e) {
+      throw Exception('Failed to delete patient: $e');
+    }
+  }
+
+  @override
+  Future<void> hospitalizePatient(int patientId, {required String createdAt, required String reason}) async {
+    try {
+      await dataSource.hospitalizePatient(patientId, createdAt: createdAt, reason: reason);
+    } catch (e) {
+      throw Exception('Failed to hospitalize patient: $e');
     }
   }
 }

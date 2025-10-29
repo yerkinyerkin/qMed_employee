@@ -5,13 +5,21 @@ import 'package:qmed_employee/core/const/color_styles.dart';
 import 'package:qmed_employee/core/common/snackbar_service.dart';
 import 'package:qmed_employee/features/add_patient/widgets/add_text_field.dart';
 import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_bloc.dart';
-import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_event.dart';
-import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_state.dart';
+import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_event.dart' as AddPatientEvents;
+import 'package:qmed_employee/features/add_patient/logic/bloc/add_patient_state.dart' as AddPatientStates;
 import 'package:qmed_employee/features/add_patient/logic/data/models/add_patient_model.dart';
 import 'package:qmed_employee/features/add_patient/logic/data/models/sector_model.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:dio/dio.dart';
+import 'package:qmed_employee/core/dio_interceptor/dio_interceptor.dart';
+import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_bloc.dart';
+import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_event.dart' as AboutPatientEvents;
+import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_state.dart' as AboutPatientStates;
+import 'package:qmed_employee/core/get_it/injection_container.dart';
 class EditPatientScreen extends StatefulWidget {
-  const EditPatientScreen({super.key});
+  final int patientId;
+  
+  const EditPatientScreen({super.key, required this.patientId});
 
   @override
   State<EditPatientScreen> createState() => _EditPatientScreenState();
@@ -23,6 +31,7 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
   SectorModel? selectedSector;
   List<SectorModel> sectors = [];
   double? bmi;
+  bool isLoading = true;
   final _uchastokController = TextEditingController();
   final _surnameController = TextEditingController();
   final _nameController = TextEditingController();
@@ -34,6 +43,7 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
   final _noezologyaController = TextEditingController();
   final _addressController = TextEditingController();
   final _contactController = TextEditingController();
+  final _emailController = TextEditingController();
   final _arterialdavlenie = TextEditingController();
   final _heartbeat = TextEditingController();
   final _levelsugar = TextEditingController();
@@ -68,6 +78,7 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
   );
 
   String? selectedDisease;
+  String? selectedGender;
   
   // Артериальная гипертензия
   String? hypertensionRiskLevel;
@@ -84,10 +95,126 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
   bool? hasCVD;
   bool? hasRetinopathy;
   bool? takesStatin;
+  Dio get dio => DioInterceptor(Dio()).getDio;
+  int? _loadedSectorId;
+  int? _loadedMedStaffId;
+  
   @override
   void initState() {
     super.initState();
-    context.read<AddPatientBloc>().add(LoadSectors());
+    context.read<AddPatientBloc>().add(AddPatientEvents.LoadSectors());
+    _loadPatientData();
+  }
+
+  Future<void> _loadPatientData() async {
+    try {
+      final response = await dio.get('/patient/${widget.patientId}');
+      final data = response.data;
+      
+      setState(() {
+        // Заполняем основные поля
+        _surnameController.text = data['last_name'] ?? '';
+        _nameController.text = data['first_name'] ?? '';
+        _middleNameController.text = data['middle_name'] ?? '';
+        _iinController.text = data['iin'] ?? '';
+        
+        // Дата рождения
+        if (data['birth_date'] != null) {
+          final date = DateTime.parse(data['birth_date']);
+          _birthController.text = '${date.day}.${date.month}.${date.year}';
+        }
+        
+        // Рост и вес
+        if (data['height_cm'] != null) {
+          _heightController.text = data['height_cm'].toString();
+        }
+        if (data['weight_kg'] != null) {
+          _weightController.text = data['weight_kg'].toString();
+        }
+        
+        // Адрес
+        _addressController.text = data['address'] ?? '';
+        
+        // Телефон
+        _contactController.text = data['phone_number'] ?? '';
+        
+        // Email
+        _emailController.text = data['mail'] ?? '';
+        
+        // Gender
+        selectedGender = data['gender'];
+        
+        // Артериальное давление, сахар, пульс
+        _arterialdavlenie.text = data['blood_pressure'] ?? '';
+        if (data['sugar_level'] != null) {
+          _levelsugar.text = data['sugar_level'].toString();
+        }
+        if (data['heart_rate'] != null) {
+          _heartbeat.text = data['heart_rate'].toString();
+        }
+        
+        // Участок
+        if (data['sector_id'] != null) {
+          _loadedSectorId = data['sector_id'];
+        } else if (data['sector'] != null && data['sector']['sector_id'] != null) {
+          _loadedSectorId = data['sector']['sector_id'];
+        } else if (data['sector'] != null && data['sector']['SectorID'] != null) {
+          _loadedSectorId = data['sector']['SectorID'];
+        }
+        
+        // Med Staff ID
+        if (data['med_staff_id'] != null) {
+          _loadedMedStaffId = data['med_staff_id'];
+        }
+        
+        // Заболевания
+        if (data['diseases'] != null && data['diseases'].isNotEmpty) {
+          // API может возвращать diseases как массив чисел или объектов
+          dynamic diseaseData = data['diseases'][0];
+          int? diseaseId;
+          
+          if (diseaseData is int) {
+            diseaseId = diseaseData;
+          } else if (diseaseData is Map && diseaseData['disease_id'] != null) {
+            diseaseId = diseaseData['disease_id'];
+          }
+          
+          if (diseaseId == 1) {
+            selectedDisease = 'Артериальная гипертензия';
+          } else if (diseaseId == 2) {
+            selectedDisease = 'Хроническая сердечная недостаточность';
+          } else if (diseaseId == 3) {
+            selectedDisease = 'Сахарный диабет';
+          }
+        }
+        
+        isLoading = false;
+      });
+      
+      // Вычисляем ИМТ
+      calculateBMI();
+      
+    } catch (e) {
+      print('Ошибка загрузки пациента: $e');
+      setState(() {
+        isLoading = false;
+      });
+      if (mounted) {
+        SnackbarService.showError(context, 'Ошибка загрузки данных пациента');
+      }
+    }
+  }
+  
+  void _loadSectorForEdit() {
+    if (_loadedSectorId != null && sectors.isNotEmpty) {
+      final loadedSectors = sectors.where((s) => s.sectorId == _loadedSectorId).toList();
+      
+      if (loadedSectors.isNotEmpty) {
+        setState(() {
+          selectedSector = loadedSectors.first;
+        });
+      }
+    }
   }
   String _convertDateFormat(String date) {
     if (date.isEmpty) return '';
@@ -123,6 +250,7 @@ class _EditPatientScreenState extends State<EditPatientScreen> {
     _weightController.dispose();
     _addressController.dispose();
     _contactController.dispose();
+    _emailController.dispose();
     _arterialdavlenie.dispose();
     _heartbeat.dispose();
     _levelsugar.dispose();
@@ -609,7 +737,6 @@ Color _getBMIColor(double bmi) {
           ),
           const SizedBox(height: 8),
           
-          // Foot Examination Date
           Text('Дата последнего осмотра стопы', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
           const SizedBox(height: 4),
           AddTextField(
@@ -629,7 +756,6 @@ Color _getBMIColor(double bmi) {
           ),
           const SizedBox(height: 8),
           
-          // Diabetic Retinopathy
           Text('Есть ли у пациента диабетическая ретинопатия?', style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600, color: ColorStyles.blackColor)),
           const SizedBox(height: 4),
           Row(
@@ -732,49 +858,69 @@ Color _getBMIColor(double bmi) {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AddPatientBloc, AddPatientState>(
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => sl<AboutPatientBloc>()),
+      ],
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<AddPatientBloc, AddPatientStates.AddPatientState>(
       listener: (context, state) {
-        if (state is AddPatientSuccess) {
+        if (state is AddPatientStates.AddPatientSuccess) {
           SnackbarService.showSuccess(context, 'Пациент успешно добавлен!');
           // Очищаем форму после успешного добавления
           _clearForm();
         }
-        if (state is AddPatientFailure) {
+        if (state is AddPatientStates.AddPatientFailure) {
           SnackbarService.showError(context, 'Ошибка: ${state.error}');
         }
-        if (state is SectorsLoaded) {
+        if (state is AddPatientStates.SectorsLoaded) {
           setState(() {
             sectors = state.sectors;
           });
-          print('Загружено участков: ${sectors.length}');
-          for (var sector in sectors) {
-            print('Участок: ${sector.address} (ID: ${sector.sectorId})');
+          _loadSectorForEdit();
           }
-        }
-        if (state is SectorsLoadFailed) {
-          print('Ошибка загрузки участков: ${state.error}');
+        if (state is AddPatientStates.SectorsLoadFailed) {
           SnackbarService.showError(context, 'Ошибка загрузки участков: ${state.error}');
         }
       },
-      child: BlocBuilder<AddPatientBloc, AddPatientState>(
+          ),
+          BlocListener<AboutPatientBloc, AboutPatientStates.AboutPatientState>(
+            listener: (context, state) {
+              if (state is AboutPatientStates.PatientUpdateSuccess) {
+                SnackbarService.showSuccess(context, state.message);
+                Navigator.pop(context); // Возвращаемся назад после успешного обновления
+              }
+              if (state is AboutPatientStates.PatientUpdateFailure) {
+                SnackbarService.showError(context, 'Ошибка: ${state.error}');
+              }
+            },
+          ),
+        ],
+      child: BlocBuilder<AddPatientBloc, AddPatientStates.AddPatientState>(
         builder: (context, state) {
           return Scaffold(
             backgroundColor: Colors.white,
             appBar: AppBar(
               backgroundColor: Color(0xFF1C6BA4),
-              title: Text('Добавить пациента',style: GoogleFonts.montserrat(fontSize: 17,
+              title: Text('Редактирование пациента',style: GoogleFonts.montserrat(fontSize: 17,
               color: ColorStyles.whiteColor,fontWeight: FontWeight.w500,
                 ),
               ),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
             ),
-            body: state is AddPatientLoading 
+            ),
+            body: (state is AddPatientStates.AddPatientLoading || isLoading) 
               ? Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Секция 1: Личные данные
               Container(
                 padding: EdgeInsets.all(16),
                 margin: EdgeInsets.symmetric(vertical: 8),
@@ -1027,104 +1173,41 @@ Color _getBMIColor(double bmi) {
       ),
     ),
     onPressed: () {
-      final patient = PatientModel(
-        sectorId: selectedSector?.sectorId,
-        lastName: _surnameController.text,
-        firstName: _nameController.text,
-        middleName: _middleNameController.text.isEmpty ? null : _middleNameController.text,
-        iin: _iinController.text,
-        birthDate: _convertDateFormat(_birthController.text),
-        heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
-        weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
-        address: _addressController.text,
-        phoneNumber: _contactController.text,
-        diseases: selectedDisease != null ? [selectedDisease == 'Артериальная гипертензия' ? 1 : selectedDisease == 'Хроническая сердечная недостаточность' ? 2 : 3] : [],
-        bloodPressure: _arterialdavlenie.text.isEmpty ? null : _arterialdavlenie.text,
-        sugarLevel: _levelsugar.text.isEmpty ? null : double.tryParse(_levelsugar.text),
-        heartRate: _heartbeat.text.isEmpty ? null : int.tryParse(_heartbeat.text),
-        visitData: VisitData(
-          visitHypertension: selectedDisease == 'Артериальная гипертензия' ? VisitHypertension(
-            ldl: _ldlValue.text.isEmpty ? null : double.tryParse(_ldlValue.text),
-            ldlDate: _ldlDate.text.isEmpty ? null : _convertToISODate(_ldlDate.text),
-            cholesterol: _cholesterolValue.text.isEmpty ? null : double.tryParse(_cholesterolValue.text),
-            cholesterolDate: _cholesterolDate.text.isEmpty ? null : _convertToISODate(_cholesterolDate.text),
-            riskLevel: _riskLevel.text.isEmpty ? null : int.tryParse(_riskLevel.text),
-            visitGeneral: VisitGeneral(
-              bmi: bmi,
-              bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
-              diastolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[1]) : null),
-              heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
-              selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
-              selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
-              selfManagementGoalDate: _lastSelfManagementDate.text.isEmpty ? null : _convertToISODate(_lastSelfManagementDate.text),
-              smokingCessationCounselingDate: _smokingCessationCounselingDate.text.isEmpty ? null : _convertToISODate(_smokingCessationCounselingDate.text),
-              smokingStatus: smokingStatus == 'Да',
-              smokingStatusAssessmentDate: _smokingStatusAssessmentDate.text.isEmpty ? null : _convertToISODate(_smokingStatusAssessmentDate.text),
-              systolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[0]) : null),
-              weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
-            ),
-          ) : null,
-          visitHeartFailure: selectedDisease == 'Хроническая сердечная недостаточность' ? VisitHeartFailure(
-            aceInhibitors: takesACEInhibitor,
-            aldosteroneAntagonists: takesAldosteroneAntagonists,
-            betaBlockers: takesBetaBlockers,
-            echoDate: _echoDate.text.isEmpty ? null : _convertToISODate(_echoDate.text),
-            fluVaccinationDate: _fluVaccinationDate.text.isEmpty ? null : _convertToISODate(_fluVaccinationDate.text),
-            gfr: _egfrValue.text.isEmpty ? null : int.tryParse(_egfrValue.text),
-            hadEcho: hasEchoECGStudy,
-            hospitalizationDate: _hospitalizationDate.text.isEmpty ? null : _convertToISODate(_hospitalizationDate.text),
-            leftVentricleDysfunction: hasLeftVentricularDysfunction,
-            lvef: _efValue.text.isEmpty ? null : int.tryParse(_efValue.text),
-            nyhaClass: nyhaClass == 'Класс I' ? 1 : nyhaClass == 'Класс II' ? 2 : nyhaClass == 'Класс III' ? 3 : nyhaClass == 'Класс IV' ? 4 : null,
-            visitGeneral: VisitGeneral(
-              bmi: bmi,
-              bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
-              diastolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[1]) : null),
-              heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
-              selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
-              selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
-              selfManagementGoalDate: _lastSelfManagementDate.text.isEmpty ? null : _convertToISODate(_lastSelfManagementDate.text),
-              smokingCessationCounselingDate: _smokingCessationCounselingDate.text.isEmpty ? null : _convertToISODate(_smokingCessationCounselingDate.text),
-              smokingStatus: smokingStatus == 'Да',
-              smokingStatusAssessmentDate: _smokingStatusAssessmentDate.text.isEmpty ? null : _convertToISODate(_smokingStatusAssessmentDate.text),
-              systolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[0]) : null),
-              weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
-            ),
-          ) : null,
-          visitDiabetes: selectedDisease == 'Сахарный диабет' ? VisitDiabetes(
-            eyeExamDate: _retinopathyDate.text.isEmpty ? null : _convertToISODate(_retinopathyDate.text),
-            footExamDate: _footExamDate.text.isEmpty ? null : _convertToISODate(_footExamDate.text),
-            hasCvd: hasCVD,
-            hasRetinopathy: hasRetinopathy,
-            hda1c: _hba1cValue.text.isEmpty ? null : double.tryParse(_hba1cValue.text),
-            hda1cDate: _hba1cDate.text.isEmpty ? null : _convertToISODate(_hba1cDate.text),
-            ldl: _ldlValue.text.isEmpty ? null : double.tryParse(_ldlValue.text),
-            ldlDate: _ldlDate.text.isEmpty ? null : _convertToISODate(_ldlDate.text),
-            takesStatin: takesStatin,
-            uacDate: _sakDate.text.isEmpty ? null : _convertToISODate(_sakDate.text),
-            visitGeneral: VisitGeneral(
-              bmi: bmi,
-              bpMeasurementDate: _lastBPDate.text.isEmpty ? null : _convertToISODate(_lastBPDate.text),
-              diastolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[1]) : null),
-              heightCm: _heightController.text.isEmpty ? null : int.tryParse(_heightController.text),
-              selfConfidenceAssessmentDate: _lastConfidenceDate.text.isEmpty ? null : _convertToISODate(_lastConfidenceDate.text),
-              selfConfidenceLevel: _confidenceLevel.text.isEmpty ? null : int.tryParse(_confidenceLevel.text),
-              selfManagementGoalDate: _lastSelfManagementDate.text.isEmpty ? null : _convertToISODate(_lastSelfManagementDate.text),
-              smokingCessationCounselingDate: _smokingCessationCounselingDate.text.isEmpty ? null : _convertToISODate(_smokingCessationCounselingDate.text),
-              smokingStatus: smokingStatus == 'Да',
-              smokingStatusAssessmentDate: _smokingStatusAssessmentDate.text.isEmpty ? null : _convertToISODate(_smokingStatusAssessmentDate.text),
-              systolicBp: _arterialdavlenie.text.isEmpty ? null : (_arterialdavlenie.text.contains('/') ? int.tryParse(_arterialdavlenie.text.split('/')[0]) : null),
-              weightKg: _weightController.text.isEmpty ? null : int.tryParse(_weightController.text),
-            ),
-          ) : null,
+      final patientData = <String, dynamic>{
+        'user_id': widget.patientId,
+        'last_name': _surnameController.text,
+        'first_name': _nameController.text,
+        'middle_name': _middleNameController.text.isEmpty ? '' : _middleNameController.text,
+        'iin': _iinController.text,
+        'birth_date': _convertDateFormat(_birthController.text),
+        if (_heightController.text.isNotEmpty) 'height_cm': int.tryParse(_heightController.text),
+        if (_weightController.text.isNotEmpty) 'weight_kg': int.tryParse(_weightController.text),
+        if (selectedGender != null) 'gender': selectedGender,
+        'address': _addressController.text,
+        if (_emailController.text.isNotEmpty) 'mail': _emailController.text,
+        'phone_number': _contactController.text,
+        'relative_phone_number': null,
+        if (_arterialdavlenie.text.isNotEmpty) 'blood_pressure': _arterialdavlenie.text,
+        if (_levelsugar.text.isNotEmpty) 'sugar_level': double.tryParse(_levelsugar.text),
+        if (_heartbeat.text.isNotEmpty) 'heart_rate': int.tryParse(_heartbeat.text),
+        'diseases': selectedDisease != null ? [selectedDisease == 'Артериальная гипертензия' ? 1 : selectedDisease == 'Хроническая сердечная недостаточность' ? 2 : 3] : [],
+        if (selectedSector?.sectorId != null) 'sector_id': selectedSector?.sectorId,
+        if (_loadedMedStaffId != null) 'med_staff_id': _loadedMedStaffId,
+      };
+      
+      patientData.removeWhere((key, value) => value == null);
+      
+      context.read<AboutPatientBloc>().add(
+        AboutPatientEvents.UpdatePatientEvent(
+          patientId: widget.patientId,
+          patientData: patientData,
         ),
       );
-      
-      context.read<AddPatientBloc>().add(AddPatientButtonPressed(patient));
     },
     child: const Text('Сохранить изменения'),
   ),
-)
+),
+          const SizedBox(height: 20),
 
             ],
           ),
@@ -1132,6 +1215,7 @@ Color _getBMIColor(double bmi) {
       ),
           );
         },
+      ),
       ),
     );
   }

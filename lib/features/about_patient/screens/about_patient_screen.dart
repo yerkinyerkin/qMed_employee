@@ -429,7 +429,13 @@ class AboutPatientScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => VisitsScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => VisitsScreen(
+                              patientId: patient.userId ?? 0,
+                              patientName: '${patient.lastName ?? ''} ${patient.firstName ?? ''} ${patient.middleName ?? ''}'.trim(),
+                              patientIin: patient.iin ?? '',
+                            ),
+                          ),
                         );
                       },
                     ),

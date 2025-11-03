@@ -5,6 +5,9 @@ import 'package:qmed_employee/features/add_patient/logic/data/repositories/add_p
 import 'package:qmed_employee/features/about_patient/logic/bloc/about_patient_bloc.dart';
 import 'package:qmed_employee/features/about_patient/logic/data/datasources/about_patient_datasource.dart';
 import 'package:qmed_employee/features/about_patient/logic/data/repositories/about_patient_repository.dart';
+import 'package:qmed_employee/features/about_patient/logic/bloc/visit_bloc.dart';
+import 'package:qmed_employee/features/about_patient/logic/data/datasources/visit_datasource.dart';
+import 'package:qmed_employee/features/about_patient/logic/data/repositories/visit_repository.dart';
 import 'package:qmed_employee/features/home/logic/bloc/home_bloc.dart';
 import 'package:qmed_employee/features/home/logic/data/datasources/home_datasource.dart';
 import 'package:qmed_employee/features/home/logic/data/repositories/home_repository.dart';
@@ -49,4 +52,11 @@ void initGetIt() async {
   sl.registerLazySingleton<AboutPatientRepository>(() => AboutPatientRepositoryImpl(sl()));
 
   sl.registerFactory<AboutPatientBloc>(() => AboutPatientBloc(sl(), sl()));
+
+  // Visit
+  sl.registerLazySingleton<VisitDataSource>(() => VisitDataSourceImpl());
+
+  sl.registerLazySingleton<VisitRepository>(() => VisitRepositoryImpl(sl()));
+
+  sl.registerFactory<VisitBloc>(() => VisitBloc(sl()));
 }

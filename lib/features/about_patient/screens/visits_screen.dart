@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qmed_employee/features/about_patient/screens/edit_visit_screen.dart';
+import 'package:qmed_employee/features/about_patient/screens/add_visit_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:qmed_employee/core/dio_interceptor/dio_interceptor.dart';
 
@@ -141,6 +142,34 @@ class _VisitsScreenState extends State<VisitsScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddVisitScreen(patientId: widget.patientId),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+                  label: const Text(
+                    'Добавить визит',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1C6BA4),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -254,12 +283,12 @@ class _VisitsScreenState extends State<VisitsScreen> {
       borderRadius: BorderRadius.circular(10),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, size: 20, color: Colors.black87),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(icon, size: 20, color: Colors.black87),
       ),
     );
   }
